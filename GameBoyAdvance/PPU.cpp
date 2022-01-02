@@ -1527,7 +1527,109 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 								{
 								case 0:
 									// Normal
-									display.SetPixel(pos, Sprite[i][j]);
+									switch (colorEffect)
+									{
+									case 0:
+										// No Effect
+										display.SetPixel(pos, Sprite[i][j]);
+										break;
+									case 1:
+										// Alpha Blending
+										display.SetPixel(pos, Sprite[i][j]);
+										break;
+									case 2:
+										// Fade to white
+										if ((BLDCNT >> 4) & 1) {
+											uint16_t colorA = Sprite[i][j];
+											int redA = (colorA & 0x1F);
+											int greenA = ((colorA & 0x3E0) >> 5);
+											int blueA = ((colorA & 0x7C00) >> 10);
+
+											float EVZ = 16 - EVY;
+											redA = float(redA) *     (EVZ / 16);
+											greenA = float(greenA) * (EVZ / 16);
+											blueA = float(blueA) *   (EVZ / 16);
+
+
+											int redB = 31;
+											int greenB = 31;
+											int blueB = 31;
+
+											redB = float(redB) *     (float(EVY) / 16);
+											greenB = float(greenB) * (float(EVY) / 16);
+											blueB = float(blueB) *   (float(EVY) / 16);
+
+											int red = redA + redB;
+											red *= 8;
+											if (red > 255) {
+												red = 255;
+											}
+											int green = greenA + greenB;
+											green *= 8;
+											if (green > 255) {
+												green = 255;
+											}
+											int blue = blueA + blueB;
+											blue *= 8;
+											if (blue > 255) {
+												blue = 255;
+											}
+											SetPixel(display, pos, red, green, blue);
+										}
+										else
+										{
+											display.SetPixel(pos, Sprite[i][j]);
+										}
+										break;
+									case 3:
+										// Fade to black
+										if ((BLDCNT >> 4) & 1) {
+											uint16_t colorA = Sprite[i][j];
+											int redA = (colorA & 0x1F);
+											int greenA = ((colorA & 0x3E0) >> 5);
+											int blueA = ((colorA & 0x7C00) >> 10);
+
+											float EVZ = 16 - EVY;
+											redA = float(redA) *     (EVZ / 16);
+											greenA = float(greenA) * (EVZ / 16);
+											blueA = float(blueA) *   (EVZ / 16);
+
+
+											int redB =   0;
+											int greenB = 0;
+											int blueB =  0;
+
+											redB = float(redB) *     (float(EVY) / 16);
+											greenB = float(greenB) * (float(EVY) / 16);
+											blueB = float(blueB) *   (float(EVY) / 16);
+
+											int red = redA + redB;
+											red *= 8;
+											if (red > 255) {
+												red = 255;
+											}
+											int green = greenA + greenB;
+											green *= 8;
+											if (green > 255) {
+												green = 255;
+											}
+											int blue = blueA + blueB;
+											blue *= 8;
+											if (blue > 255) {
+												blue = 255;
+											}
+											SetPixel(display, pos, red, green, blue);
+										}
+										else
+										{
+											display.SetPixel(pos, Sprite[i][j]);
+										}
+										break;
+									default:
+										display.SetPixel(pos, Sprite[i][j]);
+										break;
+									}
+									//display.SetPixel(pos, Sprite[i][j]);
 									break;
 								case 1:
 									// Semi-transparent (Alpha blend)
@@ -1580,7 +1682,96 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 									}
 									else
 									{
-										display.SetPixel(pos, Sprite[i][j]);
+										if (colorEffect == 2) {
+											if ((BLDCNT >> 4) & 1) {
+												uint16_t colorA = Sprite[i][j];
+												int redA = (colorA & 0x1F);
+												int greenA = ((colorA & 0x3E0) >> 5);
+												int blueA = ((colorA & 0x7C00) >> 10);
+
+												float EVZ = 16 - EVY;
+												redA = float(redA) *     (EVZ / 16);
+												greenA = float(greenA) * (EVZ / 16);
+												blueA = float(blueA) *   (EVZ / 16);
+
+
+												int redB = 31;
+												int greenB = 31;
+												int blueB = 31;
+
+												redB = float(redB) *     (float(EVY) / 16);
+												greenB = float(greenB) * (float(EVY) / 16);
+												blueB = float(blueB) *   (float(EVY) / 16);
+
+												int red = redA + redB;
+												red *= 8;
+												if (red > 255) {
+													red = 255;
+												}
+												int green = greenA + greenB;
+												green *= 8;
+												if (green > 255) {
+													green = 255;
+												}
+												int blue = blueA + blueB;
+												blue *= 8;
+												if (blue > 255) {
+													blue = 255;
+												}
+												SetPixel(display, pos, red, green, blue);
+											}
+											else
+											{
+												display.SetPixel(pos, Sprite[i][j]);
+											}
+										}
+										else if (colorEffect == 3) {
+											if ((BLDCNT >> 4) & 1) {
+												uint16_t colorA = Sprite[i][j];
+												int redA = (colorA & 0x1F);
+												int greenA = ((colorA & 0x3E0) >> 5);
+												int blueA = ((colorA & 0x7C00) >> 10);
+
+												float EVZ = 16 - EVY;
+												redA = float(redA) *     (EVZ / 16);
+												greenA = float(greenA) * (EVZ / 16);
+												blueA = float(blueA) *   (EVZ / 16);
+
+
+												int redB = 0;
+												int greenB = 0;
+												int blueB = 0;
+
+												redB = float(redB) *     (float(EVY) / 16);
+												greenB = float(greenB) * (float(EVY) / 16);
+												blueB = float(blueB) *   (float(EVY) / 16);
+
+												int red = redA + redB;
+												red *= 8;
+												if (red > 255) {
+													red = 255;
+												}
+												int green = greenA + greenB;
+												green *= 8;
+												if (green > 255) {
+													green = 255;
+												}
+												int blue = blueA + blueB;
+												blue *= 8;
+												if (blue > 255) {
+													blue = 255;
+												}
+												SetPixel(display, pos, red, green, blue);
+											}
+											else
+											{
+												display.SetPixel(pos, Sprite[i][j]);
+											}
+										}
+										else
+										{
+											display.SetPixel(pos, Sprite[i][j]);
+										}
 									}
 								}
 									break;
