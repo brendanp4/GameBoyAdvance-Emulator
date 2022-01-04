@@ -93,7 +93,7 @@ void Arm::Cycle(PPU& ppu, MMU& mmu)
 		Dummy();
 	}
 
-	if (frame % 2 == 0) {
+	if (frame % 4 == 0) {
 		if (state == State::Arm) {
 
 			//Ainsn = FetchArm(mmu);

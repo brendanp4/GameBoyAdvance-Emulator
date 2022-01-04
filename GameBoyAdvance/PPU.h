@@ -68,7 +68,7 @@ public:
 	void SetBit(uint16_t& val, int bit);
 	void ClearBit(uint16_t& val, int bit);
 	void LoadBgBuffer1(MMU& mmu);
-	void LoadSprites(MMU& mmu, Display& display, int spriteNum);
+	void LoadSprites(MMU& mmu, Display& display, int spriteNum, int p);
 	std::vector<uint16_t> bgBuffer;
 	std::vector<uint16_t> tileMap;
 	uint16_t Sprite[64][64];

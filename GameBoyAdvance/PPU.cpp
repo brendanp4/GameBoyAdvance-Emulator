@@ -121,9 +121,10 @@ void PPU::Update(MMU& mmu, Display& display)
 		}
 	}
 	if (obj) {
-		for (int i = 80; i >= 0; i--) {
-			LoadSprites(mmu, display, i);
+		for (int i = 96; i >= 0; i--) {
+			LoadSprites(mmu, display, i, 0);
 		}
+		
 	}
 	for (int i = 0; i < 240; i++)
 	{
@@ -151,6 +152,9 @@ void PPU::DetermineColor(Display& display)
 	int location = 0;
 	if (frame.size() >= 1) {
 		int xLoc = frame[0].x;
+		if (frame[0].pLoc == 34586) {
+			SetPixel(display, location, 0xDF13);
+		}
 
 		SetPixel(display, frame[0].pLoc, frame[0].color);
 
@@ -212,7 +216,7 @@ void PPU::DetermineColor(Display& display)
 
 		for (size_t i = 0; i < frame.size(); i++)
 		{
-			if (frame[i].color) {
+			//if (frame[i].color) {
 				if (!((frame[i].color >> 15) & 1)) {
 					if (frame[i].priority <= lowestPriority) {
 						if ((BLDCNT >> frame[i].bg) & 1) {
@@ -229,7 +233,7 @@ void PPU::DetermineColor(Display& display)
 						color = frame[i].color;
 					}
 				}
-			}
+			//}
 		}
 
 		switch (colorEffect)
@@ -387,6 +391,9 @@ void PPU::DetermineColor(Display& display)
 			SetPixel(display, location, color);
 
 			break;
+		}
+		if (frame[0].pLoc == 34586) {
+			SetPixel(display, location, 0xDF13);
 		}
 		bgPriorities[xLoc] = lowestPriority;
 	}
@@ -620,18 +627,15 @@ void PPU::LoadScanline(MMU & mmu)
 
 void PPU::DrawScanline(Display& display, MMU& mmu)
 {
-	if (curScanLine == 0) {
-		int w = 1;
-	}
 	ClearBit(mmu.DISPSTAT, 1);
 	hBlank = false;
 	bool first = false;
 	if (VideoMode == 0) {
 		if (!win0 && !win1 && !winObj) {
 			for (int i = 0; i < 240; i++) {
-				if (i == 104 && curScanLine == 0) {
-					int yaya = 0;
-				}
+				//uint16_t bdColor = mmu.BPRAM[3] << 8 | mmu.BPRAM[2];
+				//int cur = (curScanLine * 240) + i;
+				//SetPixel(display, cur, bdColor);
 				if (bg3) {
 					int color = 0;
 					first = true;
@@ -1091,15 +1095,16 @@ void PPU::LoadBgBuffer1(MMU& mmu)
 	}
 }
 
-void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
+void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 {
 	int start = spriteNum * 8;
 	uint16_t attr0 = mmu.OBJA[start + 1] << 8 | mmu.OBJA[start];
 	uint16_t attr1 = mmu.OBJA[start + 3] << 8 | mmu.OBJA[start + 2];
 	uint16_t attr2 = mmu.OBJA[start + 5] << 8 | mmu.OBJA[start + 4];
+	int priority = bitrange(11, 10, attr2);
 	//uint16_t attr3 = mmu.OBJA[start + 7] << 8 | mmu.OBJA[start + 6];
 
-	if (bitrange(9, 8, attr0) != 0b10) {
+	if ( (bitrange(9, 8, attr0) != 0b10) ) {
 
 		//Affine sprite settings
 		bool affine = false;
@@ -1148,7 +1153,7 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 			}
 		}
 		int pallete = bitrange(15, 12, attr2);
-		int priority = bitrange(11, 10, attr2);
+		
 		int width = 0;
 		int height = 0;
 
@@ -1332,12 +1337,9 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 						int yPos = vOffset + ya;
 
 						if (colorLeftIndex % 32 == 0) {
-							Sprite[xPos][yPos] = 0;
+							SetBit(colorLeft, 15);
 						}
-						else
-						{
-							Sprite[xPos][yPos] = colorLeft;
-						}
+						Sprite[xPos][yPos] = colorLeft;
 
 
 						ye = ((j * 2) + 1) % 8;
@@ -1347,12 +1349,9 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 						yPos = vOffset + ya;
 
 						if (colorRightIndex % 32 == 0) {
-							Sprite[xPos][yPos] = 0;
+							SetBit(colorRight, 15);
 						}
-						else
-						{
-							Sprite[xPos][yPos] = colorRight;
-						}
+						Sprite[xPos][yPos] = colorRight;
 
 
 
@@ -1365,6 +1364,7 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 		{
 			for (int i = 0; i < size; i++)
 			{
+				int sdahds = 0;
 				for (int j = 0; j < 32; j++) {
 					int tileIndex = (bitrange(9, 0, attr2) * 32) + 0x10000;
 					int index = (tileIndex + j) + (i * 32);
@@ -1389,12 +1389,9 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 					//}
 
 					if (colorLeftIndex % 32 == 0) {
-						Sprite[hOffset + ye][vOffset + ya] = 0;
+						SetBit(colorLeft, 15);
 					}
-					else
-					{
-						Sprite[hOffset + ye][vOffset + ya] = colorLeft;
-					}
+					Sprite[hOffset + ye][vOffset + ya] = colorLeft;
 					ye = ((j * 2) + 1) % 8;
 					ya = ((j * 2) + 1) / 8;
 
@@ -1405,13 +1402,10 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 					//	ye = abs(ye - 7);
 					//}
 
-					if (colorLeftIndex % 32 == 0) {
-						Sprite[hOffset + ye][vOffset + ya] = 0;
+					if (colorRightIndex % 32 == 0) {
+						SetBit(colorRight, 15);
 					}
-					else
-					{
-						Sprite[hOffset + ye][vOffset + ya] = colorRight;
-					}
+					Sprite[hOffset + ye][vOffset + ya] = colorRight;
 
 				}
 
@@ -1521,7 +1515,7 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum)
 
 					//if (((j + yCoord) % 160) == curScanLine) {
 					if ((yPos) == curScanLine) {
-						if (Sprite[i][j]) {
+						if (!((Sprite[i][j] >> 15) & 1)) {
 							if (priority <= bgPriorities[xPos]) {
 								switch (objMode)
 								{
@@ -1995,7 +1989,7 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 		readBg1Cnt(mmu);
 		bg1ScreenBase = (bg1ScreenBase * 0x800);
 		bg1CharBase = (bg1CharBase * 0x4000);
-		switch (bg0ScreenSize)
+		switch (bg1ScreenSize)
 		{
 		case 0:
 			tileMap.resize(1024, 0);
@@ -2526,21 +2520,90 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 					int location = (bitrange(9, 0, tileMap[i]) * 32) + bg3CharBase;
 
 					for (int j = 0; j < 32; j++) {
-						int index = (location + j);
+						//int index = (location + j);
+						//int drawDot = j * 2;
+						//int colorLocation = (mmu.VRAM[index]);
+						//
+						//uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + (pBank * 32);
+						//uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + (pBank * 32);
+						//
+						//uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
+						//uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];;
+						//
+						//// Top left corner coordinates of tile:
+						//int hOffset = (i % 32) * 8;           //Column
+						//int vOffset = (i / 32) * 8;			//Row
+						//int ye = drawDot % 8;						//Horizontal position inside tile
+						//int ya = drawDot / 8;						//Vertical position inside tile
+						//
+						//if (vFlip) {
+						//	ya = abs(ya - 7);
+						//}
+						//if (hFlip) {
+						//	ye = abs(ye - 7);
+						//}
+						//
+						//if (i < 1024) {
+						//	bg3TileBuffer[hOffset + ye][vOffset + ya] = colorLeft;
+						//}
+						//else
+						//{
+						//	bg3TileBuffer[hOffset + ye + 256][(vOffset + ya) % 256] = colorLeft;
+						//}
+						//
+						//drawDot++;
+						//
+						//
+						//// Top left corner coordinates of tile:
+						//hOffset = ((i % 32) * 8);
+						//vOffset = ((i / 32) * 8);
+						//ye = drawDot % 8;
+						//ya = drawDot / 8;
+						//
+						//if (vFlip) {
+						//	ya = abs(ya - 7);
+						//}
+						//if (hFlip) {
+						//	ye = abs(ye - 7);
+						//}
+						//
+						//if (i < 1024) {
+						//	bg3TileBuffer[hOffset + ye][vOffset + ya] = colorRight;
+						//}
+						//else
+						//{
+						//	bg3TileBuffer[hOffset + ye + 256][(vOffset + ya) % 256] = colorRight;
+						//}
+						int index = ((location + j));
 						int drawDot = j * 2;
 						int colorLocation = (mmu.VRAM[index]);
 
-						uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + (pBank * 32);
-						uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + (pBank * 32);
+						uint16_t colorLeftIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + (pBank * 32);
+						uint16_t colorRightIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + (pBank * 32);
 
 						uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
-						uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];;
+						uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];
+
+						if (colorLeftIndex % 32 == 0) {
+							SetBit(colorLeft, 15);
+						}
+						else
+						{
+							ClearBit(colorLeft, 15);
+						}
+						if (colorRightIndex % 32 == 0) {
+							SetBit(colorRight, 15);
+						}
+						else
+						{
+							ClearBit(colorRight, 15);
+						}
 
 						// Top left corner coordinates of tile:
-						int hOffset = (i % 32) * 8;           //Column
-						int vOffset = (i / 32) * 8;			//Row
-						int ye = drawDot % 8;						//Horizontal position inside tile
-						int ya = drawDot / 8;						//Vertical position inside tile
+						int hOffset = ((i % 32) * 8);					//Column
+						int vOffset = (((i % 1024) / 32) * 8);			//Row
+						int ye = drawDot % 8;							//Horizontal position inside tile
+						int ya = (drawDot / 8);							//Vertical position inside tile
 
 						if (vFlip) {
 							ya = abs(ya - 7);
@@ -2549,22 +2612,36 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 							ye = abs(ye - 7);
 						}
 
+						int posX = 0;
+						int posY = 0;
+
 						if (i < 1024) {
-							bg3TileBuffer[hOffset + ye][vOffset + ya] = colorLeft;
+							posX = hOffset + ye;
+							posY = vOffset + ya;
 						}
-						else
-						{
-							bg3TileBuffer[hOffset + ye + 256][(vOffset + ya) % 256] = colorLeft;
+						else if (i < 2048) {
+							posX = hOffset + ye + 256;
+							posY = (vOffset + ya) % 256;
 						}
+						else if (i < 3072) {
+							posX = ((hOffset + ye));
+							posY = ((vOffset + ya) + 256) % 512;
+						}
+						else if (i < 4096) {
+							posX = ((hOffset + ye) + 256);
+							posY = ((vOffset + ya) + 256) % 512;
+						}
+
+						bg3TileBuffer[posX][posY] = colorRight;
 
 						drawDot++;
 
 
 						// Top left corner coordinates of tile:
 						hOffset = ((i % 32) * 8);
-						vOffset = ((i / 32) * 8);
+						vOffset = (((i % 1024) / 32) * 8);
 						ye = drawDot % 8;
-						ya = drawDot / 8;
+						ya = (drawDot / 8);
 
 						if (vFlip) {
 							ya = abs(ya - 7);
@@ -2574,12 +2651,22 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 						}
 
 						if (i < 1024) {
-							bg3TileBuffer[hOffset + ye][vOffset + ya] = colorRight;
+							posX = hOffset + ye;
+							posY = vOffset + ya;
 						}
-						else
-						{
-							bg3TileBuffer[hOffset + ye + 256][(vOffset + ya) % 256] = colorRight;
+						else if (i < 2048) {
+							posX = hOffset + ye + 256;
+							posY = (vOffset + ya) % 256;
 						}
+						else if (i < 3072) {
+							posX = ((hOffset + ye));
+							posY = ((vOffset + ya) + 256) % 512;
+						}
+						else if (i < 4096) {
+							posX = ((hOffset + ye) + 256) % 512;
+							posY = ((vOffset + ya) + 256) % 512;
+						}
+						bg3TileBuffer[posX][posY] = colorLeft;
 					}
 				}
 			}
