@@ -152,9 +152,9 @@ void PPU::DetermineColor(Display& display)
 	int location = 0;
 	if (frame.size() >= 1) {
 		int xLoc = frame[0].x;
-		if (frame[0].pLoc == 34586) {
-			SetPixel(display, location, 0xDF13);
-		}
+		//if (frame[0].pLoc == 34586) {
+		//	SetPixel(display, location, 0xDF13);
+		//}
 
 		SetPixel(display, frame[0].pLoc, frame[0].color);
 
@@ -392,9 +392,9 @@ void PPU::DetermineColor(Display& display)
 
 			break;
 		}
-		if (frame[0].pLoc == 34586) {
-			SetPixel(display, location, 0xDF13);
-		}
+		//if (frame[0].pLoc == 34586) {
+		//	SetPixel(display, location, 0xDF13);
+		//}
 		bgPriorities[xLoc] = lowestPriority;
 	}
 }

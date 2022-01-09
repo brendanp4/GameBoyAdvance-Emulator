@@ -3780,6 +3780,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								if ((Op2 >> (shiftAmnt - 1)) & 1) {
 									carry = true;
 								}
+								carry = false;
 								Op2 = 0;
 							}
 							else
@@ -3817,7 +3818,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 									carry = false;
 								}
 							}
-							else if (shiftAmnt > 32) {
+							else if (shiftAmnt >= 32) {
 								if (Op2 >> 31 & 1) {
 									Op2 = 0;
 									Op2 = ~Op2;
@@ -4297,6 +4298,11 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					case 0x6:
 					{
 						// SBC
+
+						if (registers[0] == 0xBB608381) {
+							Dummy();
+						}
+
 						uint32_t cv = 0;
 						if (!C) {
 							cv = 1;
@@ -4307,7 +4313,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 
 
 						if (S) {
-							if (Overflow(Op1, og, registers[Rd], false)) {
+							if (Overflow(Op1, Op2, registers[Rd], false)) {
 								SetBit(CPSR, 28);
 							}
 							else
