@@ -26,7 +26,7 @@ void Arm::Load(MMU& mmu)
 	std::streampos size;
 	char* buffer;
 
-	rom.open("C:\\Users\\brend\\Desktop\\roms\\metroid.gba", std::ios::ate | std::ios::binary);
+	rom.open("C:\\Users\\brend\\Desktop\\roms\\fuzz_arm.gba", std::ios::ate | std::ios::binary);
 	if (rom.is_open()) {
 		size = rom.tellg();
 		buffer = new char[size];
@@ -93,7 +93,7 @@ void Arm::Cycle(PPU& ppu, MMU& mmu)
 		Dummy();
 	}
 
-	if (frame % 4 == 0) {
+	//if (frame % 4 == 0) {
 		if (state == State::Arm) {
 
 			//Ainsn = FetchArm(mmu);
@@ -122,7 +122,7 @@ void Arm::Cycle(PPU& ppu, MMU& mmu)
 				}
 			}
 		}
-	}
+	//}
 
 
 
@@ -3395,6 +3395,17 @@ uint32_t Arm::bitrange(int msb, int lsb, uint64_t insn)
 void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 {
 	Dummy();
+
+	if (registers[0] == 0x1B8C959B && registers[1] == 0xD9B35E27) {
+		Dummy();
+	}
+	if (registers[30] == 134419556) {
+		Dummy();
+	}
+	if (frame == 3310716) {
+		Dummy();
+	}
+
 	if (Condition(insn)) {
 		bool S;
 		if ((insn >> 20) & 1) {
@@ -4609,6 +4620,9 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						break;
 					case 0xF:
 						// MVN
+						if (registers[0] == 0x1B8C959B) {
+							Dummy();
+						}
 						registers[Rd] = ~(Op2);
 						if (S) {
 							if (carry) {

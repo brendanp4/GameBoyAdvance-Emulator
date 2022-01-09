@@ -1589,9 +1589,9 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 											blueA = float(blueA) *   (EVZ / 16);
 
 
-											int redB =   0;
+											int redB = 0;
 											int greenB = 0;
-											int blueB =  0;
+											int blueB = 0;
 
 											redB = float(redB) *     (float(EVY) / 16);
 											greenB = float(greenB) * (float(EVY) / 16);
@@ -1613,10 +1613,6 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 												blue = 255;
 											}
 											SetPixel(display, pos, red, green, blue);
-										}
-										else
-										{
-											display.SetPixel(pos, Sprite[i][j]);
 										}
 										break;
 									default:
@@ -1842,6 +1838,10 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 
 					uint16_t color = mmu.BPRAM[colorLocation + 1] << 8 | mmu.BPRAM[colorLocation];
 
+					if (colorLocation == 0) {
+						SetBit(color, 15);
+					}
+
 					//int b = bitrange(14, 10, color) * 8;
 					//int g = bitrange(9, 5, color) * 8;
 					//int r = bitrange(4, 0, color) * 8;
@@ -2026,6 +2026,10 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 						int colorLocation = (mmu.VRAM[location + j] * 2);
 
 						uint16_t color = mmu.BPRAM[colorLocation + 1] << 8 | mmu.BPRAM[colorLocation];
+
+						if (colorLocation == 0) {
+							SetBit(color, 15);
+						}
 
 						//int b = bitrange(14, 10, color) * 8;
 						//int g = bitrange(9, 5, color) * 8;
@@ -2269,6 +2273,10 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 
 						uint16_t color = mmu.BPRAM[colorLocation + 1] << 8 | mmu.BPRAM[colorLocation];
 
+						if (colorLocation == 0) {
+							SetBit(color, 15);
+						}
+
 						int b = bitrange(14, 10, color) * 8;
 						int g = bitrange(9, 5, color) * 8;
 						int r = bitrange(4, 0, color) * 8;
@@ -2461,6 +2469,10 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 						//int colorLocation = (mmu.MemoryRead(location + j + 0x6000000) * 2);
 
 						uint16_t color = mmu.BPRAM[colorLocation + 1] << 8 | mmu.BPRAM[colorLocation];
+
+						if (colorLocation == 0) {
+							SetBit(color, 15);
+						}
 
 						//int b = bitrange(14, 10, color) * 8;
 						//int g = bitrange(9, 5, color) * 8;
