@@ -1097,6 +1097,9 @@ void PPU::LoadBgBuffer1(MMU& mmu)
 
 void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 {
+	if (spriteNum == 6) {
+		int h = 0;
+	}
 	int start = spriteNum * 8;
 	uint16_t attr0 = mmu.OBJA[start + 1] << 8 | mmu.OBJA[start];
 	uint16_t attr1 = mmu.OBJA[start + 3] << 8 | mmu.OBJA[start + 2];
@@ -1291,17 +1294,17 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 						//	yPos += (height / 2) / 2;
 						//}
 
-						if (colorIndex % 32 == 0) {
-							Sprite[xPos][yPos] = 0;
+						if (colorIndex == 512) {
+							SetBit(colorLeft, 15);
 						}
-						else
-						{
-							if (affine) {
-								int y = 0;
-							}
-							Sprite[xPos][yPos] = colorLeft;
-						}
-						//Sprite[xPos][yPos] = colorLeft;
+						//else
+						//{
+						//	if (affine) {
+						//		int y = 0;
+						//	}
+						//	Sprite[xPos][yPos] = colorLeft;
+						//}
+						Sprite[xPos][yPos] = colorLeft;
 
 					}
 				}

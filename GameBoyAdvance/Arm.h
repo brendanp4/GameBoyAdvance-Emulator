@@ -39,6 +39,8 @@ private:
 	void DecodeThumb(uint16_t insn, MMU& mmu);
 	void Dummy();
 	int WhatRegister(uint32_t input);
+	void SetFlags(uint32_t Rd, bool carry, bool overflow, bool setV);
+	void SetFlagsSub(uint32_t Rd, bool carry, bool overflow, bool setV);
 	uint32_t insn = 0;
 	uint32_t ins1 = 0;
 	uint32_t ins2 = 0;
