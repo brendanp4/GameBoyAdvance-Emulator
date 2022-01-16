@@ -26,7 +26,7 @@ void Arm::Load(MMU& mmu)
 	std::streampos size;
 	char* buffer;
 
-	rom.open("C:\\Users\\brend\\Desktop\\roms\\metroid.gba", std::ios::ate | std::ios::binary);
+	rom.open("C:\\Users\\brend\\Desktop\\roms\\prio_demo.gba", std::ios::ate | std::ios::binary);
 	if (rom.is_open()) {
 		size = rom.tellg();
 		buffer = new char[size];
@@ -2413,6 +2413,17 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		case 0x9:
 			// NEG
 			registers[Rd] = 0 - registers[Rs];
+			SetBit(CPSR, 29);
+			if (registers[Rs] > 0) {
+				ClearBit(CPSR, 29);
+			}
+			if (Overflow(0, registers[Rs], registers[Rd], false)) {
+				SetBit(CPSR, 28);
+			}
+			else
+			{
+				ClearBit(CPSR, 28);
+			}
 			if (registers[Rd] >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -2940,7 +2951,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			registers[Rd] = ((registers[30] + 4) & ~(2)) + offset;
 		}
 	}
-	if (bitrange(15, 8, insn) == 0b10110000) {
+	if (bitrange(15,  8, insn) == 0b10110000) {
 		//Thumb 13 - add offset to stack pointer
 		uint32_t offset = bitrange(6, 0, insn) * 4;
 		if (insn >> 7 & 1) {
