@@ -15,6 +15,7 @@ Arm::Arm()
 	registers[22] = 0x03007FA0;
 	registers[19] = 0x03007FE0;
 	registers[30] = 0x08000000;
+	GenerateTable();
 
 
 	//CPSR = 0x6000001f;
@@ -26,7 +27,7 @@ void Arm::Load(MMU& mmu)
 	std::streampos size;
 	char* buffer;
 
-	rom.open("C:\\Users\\brend\\Desktop\\roms\\prio_demo.gba", std::ios::ate | std::ios::binary);
+	rom.open("C:\\Users\\brend\\Desktop\\roms\\metroid.gba", std::ios::ate | std::ios::binary);
 	if (rom.is_open()) {
 		size = rom.tellg();
 		buffer = new char[size];
@@ -157,7 +158,8 @@ uint32_t Arm::FetchArm(MMU& mmu)
 {
 	//uint32_t PC = registers[30];
 	//return (mmu.MemoryRead(registers[30] + 3) << 24) | (mmu.MemoryRead(registers[30] + 2) << 16) | (mmu.MemoryRead(registers[30] + 1) << 8) | mmu.MemoryRead(registers[30]);
-	return mmu.MemoryReadWord(registers[30]);
+	Ainsn = mmu.MemoryReadWord(registers[30]);
+	return Ainsn;
 }
 
 uint16_t Arm::FetchThumb(MMU& mmu)
@@ -3475,7 +3477,8 @@ uint32_t Arm::bitrange(int msb, int lsb, uint64_t insn)
 void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 {
 	if (Condition(insn)) {
-		bool S;
+		uint16_t nInsn = (((insn >> 20) & 0xFF) << 4) | (insn & 0xF);
+		bool S = false;
 		if ((insn >> 20) & 1) {
 			S = true;
 		}
@@ -3749,9 +3752,6 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				int Rn = WhatRegister(bitrange(19, 16, insn));
 				int Rd = WhatRegister(bitrange(15, 12, insn));
 				uint32_t Op1 = registers[Rn];
-				if (Rd == 3) {
-					Dummy();
-				}
 
 				if ((insn >> 25) & 1) {
 					// Op2 Immediate
@@ -4149,13 +4149,6 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							SetBit(CPSR, 29);
 						}
 						registers[Rd] = Op1 - Op2;
-						//if (Rd == 30) {
-						//	if (CPSR >> 5 & 1) {
-						//		registers[Rd] += 4;
-						//	}
-						//	increment = false;
-						//}
-
 						if (S) {
 							SetFlagsSub(registers[Rd], (Op2 > Op1), (Overflow(Op1, Op2, registers[Rd], false)), true);
 						}
@@ -5339,6 +5332,9 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 			}
 			curInsnAsm = "SWP";
 		}
+		
+		//ArmFunc[nInsn];
+
 	}
 
 	else
@@ -5374,4 +5370,857 @@ void Arm::BL(uint32_t insn)
 	increment = false;
 }
 
+void Arm::GenerateTable()
+{
+	for (int i = 0; i < 0xFFF; i++) {
+		if ((i >= 0 && i <= 0b1000) || i == 0b1010 || i == 0b1100 || i == 0b1110) {
+			AND(0);
+		}
+		else if (i == 0b1001) {
+			//MUL
+		}
+		else if (i == 0b1011) {
+			//STRH
+		}
+		else if (i >= 0 || i <= 8) {
+			//AND
+		}
+		else if (i >= 0 || i <= 8) {
+			//AND
+		}
+		else if (i >= 0 || i <= 8) {
+			//AND
+		}
+		else if (i >= 0 || i <= 8) {
+			//AND
+		}
+	}
+}
 
+void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC, bool & carry,int Rn, int Rd)
+{
+	if ((insn >> 25) & 1) {
+		// Op2 Immediate
+		Op2 = bitrange(7, 0, insn);
+		uint16_t shiftAmnt = bitrange(11, 8, insn) * 2;
+		if (Op2 > 0 && (Op2 >> (shiftAmnt - 1) & 1)) {
+			carry = true;
+		}
+		Op2 = rotateRight(Op2, shiftAmnt);
+		if (Rn == 30) {
+			Op1 += 8;
+		}
+	}
+	else {
+		// Op2 Register
+		int Rm = WhatRegister(bitrange(3, 0, insn));
+		Op2 = registers[Rm];
+		bool inc = false;
+
+		if ((insn >> 4) & 1) {
+			// Shift by register
+			int Rs = WhatRegister(bitrange(11, 8, insn));
+			uint8_t shiftAmnt = bitrange(7, 0, registers[Rs]);
+			if (Rm == 30) {
+				Op2 += 12;
+			}
+			if (Rn == 30) {
+				Op1 += 12;
+			}
+			switch (bitrange(6, 5, insn))
+			{
+			case 0:
+			{
+				// LSL
+				if (shiftAmnt == 0) {
+					if (C) {
+						carry = true;
+					}
+					else
+					{
+						carry = false;
+					}
+				}
+				else if (shiftAmnt > 0) {
+					uint64_t test = static_cast<uint64_t>(Op2);
+					test = test << shiftAmnt;
+					if ((test >> 32) & 1) {
+						carry = true;
+					}
+					if (shiftAmnt < 32) {
+						Op2 = Op2 << shiftAmnt;
+					}
+					else
+					{
+						Op2 = bitrange(31, 0, test);
+					}
+				}
+
+				break;
+			}
+			case 1:
+			{
+				// LSR
+				if (shiftAmnt == 0) {
+					if (C) {
+						carry = true;
+					}
+					else
+					{
+						carry = false;
+					}
+				}
+				else if (shiftAmnt == 32) {
+					if ((Op2 >> 31) & 1) {
+						carry = true;
+					}
+					Op2 = 0;
+				}
+				else if (shiftAmnt > 32) {
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					carry = false;
+					Op2 = 0;
+				}
+				else
+				{
+					uint32_t test = Op2;
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					Op2 = Op2 >> shiftAmnt;
+				}
+				break;
+			}
+			case 2:
+			{
+				// ASR
+				if (shiftAmnt == 0) {
+					if (C) {
+						carry = true;
+					}
+					else
+					{
+						carry = false;
+					}
+				}
+				else if (shiftAmnt >= 32) {
+					if (Op2 >> 31 & 1) {
+						Op2 = 0;
+						Op2 = ~Op2;
+						carry = true;
+					}
+					else
+					{
+						Op2 = 0;
+					}
+				}
+				else
+				{
+					Dummy();
+					uint64_t test = static_cast<uint64_t>(Op2);
+					uint32_t ya = Op2 >> (shiftAmnt - 1);
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					Op2 = arithmeticRight(Op2, shiftAmnt);
+				}
+				break;
+			}
+			case 3:
+				// ROR
+				if (shiftAmnt == 0 && Op2 == 1) {
+					Dummy();
+				}
+				if (shiftAmnt >= 32) {
+					uint32_t ye = shiftAmnt - 32;
+					uint32_t tst = Op2;
+					if ((tst >> (shiftAmnt - 1) & 1)) {
+						carry = true;
+					}
+					if (ye > 0) {
+						Op2 = rotateRight(Op2, ye);
+					}
+				}
+				else if (shiftAmnt == 0) {
+					if (C) {
+						carry = true;
+					}
+					else
+					{
+						carry = false;
+					}
+				}
+				else
+				{
+					uint32_t tst = Op2;
+					if ((tst >> (shiftAmnt - 1) & 1)) {
+						carry = true;
+					}
+					Op2 = rotateRight(Op2, shiftAmnt);
+				}
+				break;
+			}
+		}
+		else
+		{
+			// Shift by immediate
+			uint8_t shiftAmnt = bitrange(11, 7, insn);
+			if (Rm == 30) {
+				Op2 += 8;
+			}
+			if (Rn == 30) {
+				Op1 += 8;
+			}
+			switch (bitrange(6, 5, insn))
+			{
+			case 0:
+			{
+				// LSL
+				if (shiftAmnt == 0) {
+					carry = C;
+				}
+
+
+				uint64_t test = static_cast<uint64_t>(Op2);
+				test = test << shiftAmnt;
+				if ((test >> 32) & 1) {
+					carry = true;
+				}
+				Op2 = Op2 << shiftAmnt;
+				break;
+			}
+			case 1:
+			{
+				// LSR
+				if (shiftAmnt == 0 || shiftAmnt == 32) {
+					if ((Op2 >> 31) & 1)
+					{
+						carry = true;
+					}
+					Op2 = 0;
+				}
+				else if (shiftAmnt > 32) {
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					Op2 = 0;
+				}
+				else
+				{
+					uint32_t test = Op2;
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					Op2 = Op2 >> shiftAmnt;
+				}
+
+				break;
+			}
+			case 2:
+			{
+				// ASR
+				if (shiftAmnt == 0 || shiftAmnt == 32) {
+					Dummy();
+					if ((Op2 >> 31) & 1)
+					{
+						Op2 = 0;
+						carry = true;
+						Op2 = ~Op2;
+					}
+					else
+					{
+						Op2 = 0;
+					}
+				}
+				else if (shiftAmnt > 32) {
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					Op2 = 0;
+				}
+				else {
+					uint32_t test = Op2;
+					if ((Op2 >> (shiftAmnt - 1)) & 1) {
+						carry = true;
+					}
+					Op2 = arithmeticRight(Op2, shiftAmnt);
+				}
+				break;
+			}
+			case 3:
+				// ROR
+				if (shiftAmnt == 0) {
+					uint32_t tst = Op2;
+					if ((CPSR >> 29) & 1) {
+						shiftAmnt = 1;
+						if ((tst >> 0) & 1) {
+							carry = true;
+						}
+						Op2 = rotateRight(Op2, shiftAmnt);
+						SetBit(Op2, 31);
+					}
+					else
+					{
+						shiftAmnt = 1;
+						if ((tst >> 0) & 1) {
+							carry = true;
+						}
+						Op2 = rotateRight(Op2, shiftAmnt);
+						ClearBit(Op2, 31);
+					}
+
+
+				}
+				else
+				{
+					uint32_t tst = Op2;
+					if ((tst >> (shiftAmnt - 1) & 1)) {
+						carry = true;
+					}
+					Op2 = rotateRight(Op2, shiftAmnt);
+				}
+				if (shiftAmnt == 32) {
+					Dummy();
+				}
+
+				break;
+			}
+		}
+	}
+}
+
+void Arm::AND(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = Op1 & Op2;
+	if (S) {
+		SetFlags(registers[Rd], carry, false, false);
+	}
+}
+
+void Arm::EOR(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = Op1 ^ Op2;
+	if (S) {
+		SetFlags(registers[Rd], carry, false, false);
+	}
+}
+
+void Arm::SUB(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	uint32_t og = registers[Rn];
+	if (updateC) {
+		SetBit(CPSR, 29);
+	}
+	registers[Rd] = Op1 - Op2;
+	if (S) {
+		SetFlagsSub(registers[Rd], (Op2 > Op1), (Overflow(Op1, Op2, registers[Rd], false)), true);
+	}
+}
+
+void Arm::RSB(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	uint32_t og = registers[Rn];
+	SetBit(CPSR, 29);
+	registers[Rd] = Op2 - Op1;
+	if (S) {
+		SetFlagsSub(registers[Rd], (Op1 > Op2), (Overflow(Op2, Op1, registers[Rd], false)), true);
+	}
+}
+
+void Arm::ADD(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = Op1 + Op2;
+	if (S) {
+		uint64_t tst = uint64_t(Op1) + uint64_t(Op2);
+		bool poss = false;
+		if (Op1 > 0 || Op2 > 0) {
+			poss = true;
+		}
+		SetFlags(registers[Rd], (((Op1 + Op2) > 0xFFFFFFFF) || (poss && registers[Rd] == 0) || (tst >> 32 & 1)), (Overflow(Op1, Op2, registers[Rd], true)), true);
+	}
+}
+
+void Arm::ADC(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	uint64_t tst = uint64_t(Op1) + uint64_t(Op2);
+	uint32_t og = registers[Rn];
+	registers[Rd] = Op1 + Op2;
+	if (C) {
+		registers[Rd] += 1;
+	}
+
+	if (S) {
+		bool poss = false;
+		if (Op1 > 0 || Op2 > 0) {
+			poss = true;
+		}
+		SetFlags(registers[Rd], ((tst > 0xFFFFFFFF) || (poss && registers[Rd] == 0)), (Overflow(Op1, Op2, registers[Rd], true)), true);
+	}
+
+}
+
+void Arm::SBC(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	uint32_t cv = 0;
+	if (!C) {
+		cv = 1;
+	}
+	SetBit(CPSR, 29);
+	uint32_t og = Op2 - cv;
+	registers[Rd] = Op1 - Op2 - cv;
+
+
+	if (S) {
+		SetFlagsSub(registers[Rd], ((Op2 > Op1) || ((Op2 == Op1) && cv)), (Overflow(Op1, Op2, registers[Rd], false)), true);
+	}
+}
+
+void Arm::RSC(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	uint32_t cv = 0;
+	if (!C) {
+		cv = 1;
+	}
+	SetBit(CPSR, 29);
+	uint32_t og = Op1 - cv;
+	registers[Rd] = Op2 - Op1 - cv;
+
+	if (S) {
+		SetFlagsSub(registers[Rd], (og > Op2), (Overflow(Op2, og, registers[Rd], false)), true);
+	}
+}
+
+void Arm::TST(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	if (S) {
+		SetFlags((Op1 & Op2), carry, false, false);
+	}
+}
+
+void Arm::TEQ(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	if (S) {
+		SetFlags((Op1 ^ Op2), carry, false, false);
+	}
+}
+
+void Arm::CMP(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	if (S) {
+		uint32_t input = Op1;
+		uint32_t result = Op1 - Op2;
+		SetBit(CPSR, 29);
+		SetFlagsSub(result, (Op2 > Op1), (Overflow(Op1, Op2, result, false)), true);
+	}
+}
+
+void Arm::CMN(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	uint32_t input = Op1;
+	uint32_t result = Op1 + Op2;
+	if (S) {
+		bool poss = false;
+		if (Op1 > 0 || Op2 > 0) {
+			poss = true;
+		}
+		uint64_t tst = uint64_t(Op1) + uint64_t(Op2);
+		SetFlags(result, ((tst > 0xFFFFFFFF) || (poss && result == 0)), (Overflow(Op1, Op2, result, true)), true);
+	}
+}
+
+void Arm::ORR(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = Op1 | Op2;
+	if (S) {
+		SetFlags(registers[Rd], carry, false, false);
+	}
+}
+
+void Arm::MOV(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = Op2;
+	if (Rd == 30) {
+		increment = false;
+	}
+	if (S) {
+		SetFlags(registers[Rd], carry, false, false);
+	}
+}
+
+void Arm::BIC(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = Op1 & ~(Op2);
+	if (S) {
+		SetFlags(registers[Rd], carry, false, false);
+	}
+}
+
+void Arm::MVN(uint32_t inst)
+{
+	bool S = false;
+	if ((insn >> 20) & 1) {
+		S = true;
+	}
+	int Rn = WhatRegister(bitrange(19, 16, insn));
+	int Rd = WhatRegister(bitrange(15, 12, insn));
+	uint32_t Op1 = registers[Rn];
+	uint32_t Op2;
+	bool updateC = true;
+	bool carry = false;
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	registers[Rd] = ~(Op2);
+	if (S) {
+		SetFlags(registers[Rd], carry, false, false);
+	}
+}
+
+void Arm::MUL(uint32_t insn)
+{
+	uint32_t Rd = bitrange(19, 16, Ainsn);
+	uint32_t Rn = bitrange(15, 12, Ainsn);
+	uint32_t Rs = bitrange(11, 8,  Ainsn);
+	uint32_t Rm = bitrange(3, 0,   Ainsn);
+	registers[WhatRegister(Rd)] = registers[WhatRegister(Rm)] * registers[WhatRegister(Rs)];
+	if (registers[Rd] == 0) {
+		SetBit(CPSR, 30);
+	}
+	else
+	{
+		ClearBit(CPSR, 30);
+	}
+	if ((registers[Rd] >> 31) & 1) {
+		SetBit(CPSR, 31);
+	}
+	else
+	{
+		ClearBit(CPSR, 31);
+	}
+}
+
+void Arm::MLA(uint32_t insn)
+{
+	uint32_t Rd = bitrange(19, 16, Ainsn);
+	uint32_t Rn = bitrange(15, 12, Ainsn);
+	uint32_t Rs = bitrange(11, 8, Ainsn);
+	uint32_t Rm = bitrange(3, 0, Ainsn);
+	registers[WhatRegister(Rd)] = (registers[WhatRegister(Rm)] * registers[WhatRegister(Rs)]) + registers[WhatRegister(Rn)];
+	if (registers[Rd] == 0) {
+		SetBit(CPSR, 30);
+	}
+	else
+	{
+		ClearBit(CPSR, 30);
+	}
+	if ((registers[Rd] >> 31) & 1) {
+		SetBit(CPSR, 31);
+	}
+	else
+	{
+		ClearBit(CPSR, 31);
+	}
+}
+
+void Arm::UMULL(uint32_t insn)
+{
+	uint32_t Rd = bitrange(19, 16, Ainsn);
+	uint32_t Rn = bitrange(15, 12, Ainsn);
+	uint32_t Rs = bitrange(11, 8, Ainsn);
+	uint32_t Rm = bitrange(3, 0, Ainsn);
+	uint64_t Op1 = static_cast<uint64_t>(registers[WhatRegister(Rs)]);
+	uint64_t Op2 = static_cast<uint64_t>(registers[WhatRegister(Rm)]);
+	uint64_t result = Op1 * Op2;
+	registers[WhatRegister(Rn)] = (result << 32) >> 32;
+	registers[WhatRegister(Rd)] = result >> 32;
+	if (result == 0) {
+		SetBit(CPSR, 30);
+	}
+	else
+	{
+		ClearBit(CPSR, 30);
+	}
+	if ((result >> 63) & 1) {
+		SetBit(CPSR, 31);
+	}
+	else
+	{
+		ClearBit(CPSR, 31);
+	}
+}
+
+void Arm::UMLAL(uint32_t insn)
+{
+	uint32_t Rd = bitrange(19, 16, Ainsn);
+	uint32_t Rn = bitrange(15, 12, Ainsn);
+	uint32_t Rs = bitrange(11, 8, Ainsn);
+	uint32_t Rm = bitrange(3, 0, Ainsn);
+	uint64_t hi_lo = registers[WhatRegister(Rd)];
+	hi_lo <<= 16;
+	hi_lo <<= 16;
+	hi_lo |= registers[WhatRegister(Rn)];
+
+	uint64_t accumulate = registers[WhatRegister(Rd)] << 32 | registers[WhatRegister(Rn)];
+	uint64_t Op1 = static_cast<uint64_t>(registers[WhatRegister(Rs)]);
+	uint64_t Op2 = static_cast<uint64_t>(registers[WhatRegister(Rm)]);
+	uint64_t result = (Op1 * Op2) + hi_lo;
+	registers[WhatRegister(Rn)] = ((result << 32) >> 32);
+	registers[WhatRegister(Rd)] = (result >> 32);
+	if (result == 0) {
+		SetBit(CPSR, 30);
+	}
+	else
+	{
+		ClearBit(CPSR, 30);
+	}
+	if ((result >> 63) & 1) {
+		SetBit(CPSR, 31);
+	}
+	else
+	{
+		ClearBit(CPSR, 31);
+	}
+}
+
+void Arm::SMULL(uint32_t insn)
+{
+	uint32_t Rd = bitrange(19, 16, Ainsn);
+	uint32_t Rn = bitrange(15, 12, Ainsn);
+	uint32_t Rs = bitrange(11, 8, Ainsn);
+	uint32_t Rm = bitrange(3, 0, Ainsn);
+	Dummy();
+	if (registers[WhatRegister(Rs)] == -8) {
+		Dummy();
+	}
+	if (registers[WhatRegister(Rm)] == -8) {
+		Dummy();
+	}
+	int64_t Op1 = int32_t(registers[WhatRegister(Rs)]);
+	int64_t Op2 = int32_t(registers[WhatRegister(Rm)]);
+
+	int64_t result = Op1 * Op2;
+	registers[WhatRegister(Rn)] = (result << 32) >> 32;
+	registers[WhatRegister(Rd)] = result >> 32;
+	if (result == 0) {
+		SetBit(CPSR, 30);
+	}
+	else
+	{
+		ClearBit(CPSR, 30);
+	}
+	if ((result >> 63) & 1) {
+		SetBit(CPSR, 31);
+	}
+	else
+	{
+		ClearBit(CPSR, 31);
+	}
+}
+
+void Arm::SMLAL(uint32_t insn)
+{
+	uint32_t Rd = bitrange(19, 16, Ainsn);
+	uint32_t Rn = bitrange(15, 12, Ainsn);
+	uint32_t Rs = bitrange(11, 8, Ainsn);
+	uint32_t Rm = bitrange(3, 0, Ainsn);
+	if (registers[0] == 0x06E74E70 && registers[1] == 0x88DCF44E) {
+		Dummy();
+	}
+	Dummy();
+	if (registers[WhatRegister(Rs)] == -8) {
+		Dummy();
+	}
+	if (registers[WhatRegister(Rm)] == -8) {
+		Dummy();
+	}
+	int64_t hi_lo = registers[WhatRegister(Rd)];
+	hi_lo <<= 16;
+	hi_lo <<= 16;
+	hi_lo |= registers[WhatRegister(Rn)];
+
+	int64_t in1 = static_cast<int32_t>(registers[WhatRegister(Rs)]);
+	int64_t in2 = static_cast<int32_t>(registers[WhatRegister(Rm)]);
+
+	int64_t result = (in1 * in2) + hi_lo;
+	registers[WhatRegister(Rn)] = (result << 32) >> 32;
+	registers[WhatRegister(Rd)] = (result >> 32);
+	if (result == 0) {
+		SetBit(CPSR, 30);
+	}
+	else
+	{
+		ClearBit(CPSR, 30);
+	}
+	if ((result >> 63) & 1) {
+		SetBit(CPSR, 31);
+	}
+	else
+	{
+		ClearBit(CPSR, 31);
+	}
+}

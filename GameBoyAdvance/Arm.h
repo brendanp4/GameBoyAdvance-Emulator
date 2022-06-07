@@ -151,27 +151,30 @@ private:
 	bool bExecute = true;
 
 
+	// Lookup table
+	typedef void(*ArmInstr)();
+	ArmInstr ArmFunc[0xFFF];
+	void GenerateTable();
 
-
-	// Logical Functions
-	void MOV(uint32_t insn);
-	void MVN(uint32_t insn);
-	void AND(uint32_t insn);
-	void TST(uint32_t insn);
-	void EOR(uint32_t insn);
-	void TEQ(uint32_t insn);
-	void ORR(uint32_t insn);
-	void BIC(uint32_t insn);
-
-	// Arithmetic Functions
-	void ADD(uint32_t insn);
-	void ADC(uint32_t insn);
-	void SUB(uint32_t insn);
-	void SBC(uint32_t insn);
-	void RSB(uint32_t insn);
-	void RSC(uint32_t insn);
-	void CMP(uint32_t insn);
-	void CMN(uint32_t insn);
+	// Data Processing Functions
+	void DataProc(uint32_t inst, uint32_t& op1, uint32_t& op2,bool& update, bool& c,int Rn, int Rd);
+	void AND(uint32_t inst);
+	void EOR(uint32_t inst);
+	void SUB(uint32_t inst);
+	void RSB(uint32_t inst);
+	void ADD(uint32_t inst);
+	void ADC(uint32_t inst);
+	void SBC(uint32_t inst);
+	void RSC(uint32_t inst);
+	void TST(uint32_t inst);
+	void TEQ(uint32_t inst);
+	void CMP(uint32_t inst);
+	void CMN(uint32_t inst);
+	void ORR(uint32_t inst);
+	void MOV(uint32_t inst);
+	void BIC(uint32_t inst);
+	void MVN(uint32_t inst);
+	
 
 	// Multiply Functions
 	void MUL(uint32_t insn);
@@ -180,11 +183,6 @@ private:
 	void UMLAL(uint32_t insn);
 	void SMULL(uint32_t insn);
 	void SMLAL(uint32_t insn);
-	void SMLAxy(uint32_t insn);
-	void SMLAWy(uint32_t insn);
-	void SMULWy(uint32_t insn);
-	void SMLALxy(uint32_t insn);
-	void SMULxy(uint32_t insn);
 
 	// Memory Functions
 	void LDR(uint32_t insn);
