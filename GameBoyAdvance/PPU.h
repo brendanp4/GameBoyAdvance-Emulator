@@ -71,8 +71,10 @@ public:
 	void LoadSprites(MMU& mmu, Display& display, int spriteNum, int p);
 	std::vector<uint16_t> bgBuffer;
 	std::vector<uint16_t> tileMap;
-	uint16_t Sprite[64][64];
+	//uint16_t Sprite[128][128];
+	std::vector< std::vector<uint16_t> > Sprite;
 
+	uint16_t backdrop_color = 0;
 
 	std::vector<uint16_t> bg0ScanlineBuffer;
 
@@ -224,6 +226,9 @@ public:
 	void readWinIn(MMU& mmu);
 	void readWinOut(MMU& mmu);
 	void readGFXEffects(MMU& mmu);
+
+	bool yaga = false;
+	int incr = 0;
 
 
 };

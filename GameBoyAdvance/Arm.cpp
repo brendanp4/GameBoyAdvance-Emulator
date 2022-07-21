@@ -1,6 +1,7 @@
 #include "Arm.h"
 #include <fstream>
 #include <bitset>
+#include <iostream>
 
 
 
@@ -15,10 +16,99 @@ Arm::Arm()
 	registers[22] = 0x03007FA0;
 	registers[19] = 0x03007FE0;
 	registers[30] = 0x08000000;
-	GenerateTable();
 
 
 	//CPSR = 0x6000001f;
+}
+
+void Arm::WriteToLogA(int nCount)
+{
+	std::ofstream oFile;
+	std::string output = "\n-----------------------------------------------\n";;
+	output += "Frame: " + std::to_string(nCount);
+	output += "\n" + std::to_string(Ainsn) + "\n";
+	output += "\nRegister 0: " + std::to_string(registers[0]);
+	output += "\nRegister 1: " + std::to_string(registers[1]);
+	output += "\nRegister 2: " + std::to_string(registers[2]);
+	output += "\nRegister 3: " + std::to_string(registers[3]);
+	output += "\nRegister 4: " + std::to_string(registers[4]);
+	output += "\nRegister 5: " + std::to_string(registers[5]);
+	output += "\nRegister 6: " + std::to_string(registers[6]);
+	output += "\nRegister 7: " + std::to_string(registers[7]);
+	output += "\nRegister 8: " + std::to_string(registers[8]);
+	output += "\nRegister 9: " + std::to_string(registers[9]);
+	output += "\nRegister 10: " + std::to_string(registers[10]);
+	output += "\nRegister 11: " + std::to_string(registers[11]);
+	output += "\nRegister 12: " + std::to_string(registers[12]);
+	output += "\nRegister 13: " + std::to_string(registers[13]);
+	output += "\nRegister 14: " + std::to_string(registers[14]);
+	output += "\nRegister 15: " + std::to_string(registers[15]);
+	output += "\nRegister 16: " + std::to_string(registers[16]);
+	output += "\nRegister 17: " + std::to_string(registers[17]);
+	output += "\nRegister 18: " + std::to_string(registers[18]);
+	output += "\nRegister 19: " + std::to_string(registers[19]);
+	output += "\nRegister 20: " + std::to_string(registers[20]);
+	output += "\nRegister 21: " + std::to_string(registers[21]);
+	output += "\nRegister 22: " + std::to_string(registers[22]);
+	output += "\nRegister 23: " + std::to_string(registers[23]);
+	output += "\nRegister 24: " + std::to_string(registers[24]);
+	output += "\nRegister 25: " + std::to_string(registers[25]);
+	output += "\nRegister 26: " + std::to_string(registers[26]);
+	output += "\nRegister 27: " + std::to_string(registers[27]);
+	output += "\nRegister 28: " + std::to_string(registers[28]);
+	output += "\nRegister 29: " + std::to_string(registers[29]);
+	output += "\nRegister 30: " + std::to_string(registers[30]);
+	output += "\nCPSR: " + std::to_string(CPSR);
+	output += "\n-----------------------------------------------";
+	output += "\n\n";
+	oFile.open("decode.txt", std::ios::out | std::ios::app);
+	oFile << output;
+	oFile.close();
+}
+
+void Arm::WriteToLogB(int nCount)
+{
+	std::ofstream oFile;
+	std::string output = "\n-----------------------------------------------\n";;
+	output += "Frame: " + std::to_string(nCount);
+	output += "\n" + std::to_string(Ainsn) + "\n";
+	output += "\nRegister 0: " + std::to_string(registers[0]);
+	output += "\nRegister 1: " + std::to_string(registers[1]);
+	output += "\nRegister 2: " + std::to_string(registers[2]);
+	output += "\nRegister 3: " + std::to_string(registers[3]);
+	output += "\nRegister 4: " + std::to_string(registers[4]);
+	output += "\nRegister 5: " + std::to_string(registers[5]);
+	output += "\nRegister 6: " + std::to_string(registers[6]);
+	output += "\nRegister 7: " + std::to_string(registers[7]);
+	output += "\nRegister 8: " + std::to_string(registers[8]);
+	output += "\nRegister 9: " + std::to_string(registers[9]);
+	output += "\nRegister 10: " + std::to_string(registers[10]);
+	output += "\nRegister 11: " + std::to_string(registers[11]);
+	output += "\nRegister 12: " + std::to_string(registers[12]);
+	output += "\nRegister 13: " + std::to_string(registers[13]);
+	output += "\nRegister 14: " + std::to_string(registers[14]);
+	output += "\nRegister 15: " + std::to_string(registers[15]);
+	output += "\nRegister 16: " + std::to_string(registers[16]);
+	output += "\nRegister 17: " + std::to_string(registers[17]);
+	output += "\nRegister 18: " + std::to_string(registers[18]);
+	output += "\nRegister 19: " + std::to_string(registers[19]);
+	output += "\nRegister 20: " + std::to_string(registers[20]);
+	output += "\nRegister 21: " + std::to_string(registers[21]);
+	output += "\nRegister 22: " + std::to_string(registers[22]);
+	output += "\nRegister 23: " + std::to_string(registers[23]);
+	output += "\nRegister 24: " + std::to_string(registers[24]);
+	output += "\nRegister 25: " + std::to_string(registers[25]);
+	output += "\nRegister 26: " + std::to_string(registers[26]);
+	output += "\nRegister 27: " + std::to_string(registers[27]);
+	output += "\nRegister 28: " + std::to_string(registers[28]);
+	output += "\nRegister 29: " + std::to_string(registers[29]);
+	output += "\nRegister 30: " + std::to_string(registers[30]);
+	output += "\nCPSR: " + std::to_string(CPSR);
+	output += "\n-----------------------------------------------";
+	output += "\n\n";
+	oFile.open("decodeArm.txt", std::ios::out | std::ios::app);
+	oFile << output;
+	oFile.close();
 }
 
 void Arm::Load(MMU& mmu)
@@ -27,7 +117,7 @@ void Arm::Load(MMU& mmu)
 	std::streampos size;
 	char* buffer;
 
-	rom.open("C:\\Users\\brend\\Desktop\\roms\\metroid.gba", std::ios::ate | std::ios::binary);
+	rom.open("C:\\Users\\brend\\Desktop\\roms\\obj_demo.gba", std::ios::ate | std::ios::binary);
 	if (rom.is_open()) {
 		size = rom.tellg();
 		buffer = new char[size];
@@ -58,8 +148,10 @@ void Arm::Load(MMU& mmu)
 	}
 	int romSize = mmu.Rom.size();
 	int eep = 0x2000000 - romSize;
-	mmu.EEPROM.resize(eep, 0);
-
+	//int eep = 0x1FFF;
+	mmu.EEPROM.resize(eep, 0xFF);
+	GenerateTable(mmu);
+	loaded = true;
 }
 
 void Arm::Cycle(PPU& ppu, MMU& mmu)
@@ -78,28 +170,27 @@ void Arm::Cycle(PPU& ppu, MMU& mmu)
 	ReadCpsr();
 	increment = true;
 
-	if (registers[30] == 0x80989A0) {
-		Dummy();
-	}
-	if (registers[4] == 100724736) {
-		Dummy();
-	}
-	if (registers[4] == 0x600F0C2) {
-		Dummy();
-	}
-	if (registers[30] == 0x8001260) {
-		Dummy();
-	}
-	if (registers[30] == 0x800128A) {
+
+	if (frame == 1083680) {
 		Dummy();
 	}
 
-	//if (frame % 4 == 0) {
+	if (frame % 4 == 0) {
+		if (registers[0] == 0x69696969) {
+			Dummy();
+		}
 		if (state == State::Arm) {
 
-			//Ainsn = FetchArm(mmu);
 
-			Decode(FetchArm(mmu), ppu, mmu);
+			Ainsn = FetchArm(mmu);
+
+			DecodeArm(mmu);
+			//Decode(Ainsn, ppu, mmu);
+
+			if (registers[30] % 2 != 0) {
+				std::cerr << "\nArm\nInvalid PC\nRegister 30: " << registers[30] << std::endl;
+				registers[30] = registers[30] & 0xFFFFFFFC;
+			}
 
 			if (increment) {
 				registers[30] += 4;
@@ -111,7 +202,10 @@ void Arm::Cycle(PPU& ppu, MMU& mmu)
 			//Tinsn = FetchThumb(mmu);
 
 			DecodeThumb(FetchThumb(mmu), mmu);
-
+			if (registers[30] % 2 != 0) {
+				std::cerr << "\nThumb\nInvalid PC\nRegister 30: " << registers[30] << std::endl;
+				registers[30] = registers[30] & 0xFFFFFFFC;
+			}
 			SetState();
 			if (increment) {
 				if (state == State::Arm) {
@@ -123,13 +217,16 @@ void Arm::Cycle(PPU& ppu, MMU& mmu)
 				}
 			}
 		}
-	//}
 
+		DMATransfer(mmu, ppu);
 
+	}
 
-	DMATransfer(mmu, ppu);
+	
 	Timer(mmu);
 	Interrupt(mmu, ppu);
+
+	
 
 	frame++;
 }
@@ -158,8 +255,8 @@ uint32_t Arm::FetchArm(MMU& mmu)
 {
 	//uint32_t PC = registers[30];
 	//return (mmu.MemoryRead(registers[30] + 3) << 24) | (mmu.MemoryRead(registers[30] + 2) << 16) | (mmu.MemoryRead(registers[30] + 1) << 8) | mmu.MemoryRead(registers[30]);
-	Ainsn = mmu.MemoryReadWord(registers[30]);
-	return Ainsn;
+	uint32_t ARM_INSTRUCTION = mmu.MemoryReadWord(registers[30]);
+	return ARM_INSTRUCTION;
 }
 
 uint16_t Arm::FetchThumb(MMU& mmu)
@@ -340,7 +437,7 @@ void Arm::CallInterrupt()
 	SetBit(CPSR, 7);
 	registers[30] = 0x18;
 	increment = false;
-	curInsnAsm = "IRQ";
+	//curInsnAsm = "IRQ";
 }
 
 void Arm::SetBit(uint32_t & val, int bit)
@@ -1175,7 +1272,12 @@ void Arm::DMATransfer(MMU & mmu, PPU & ppu)
 		bool sDec = false;
 		bool sFix = false;
 
-
+		bool eeprom_access = false;
+		bool eeprom_read = false;
+		bool eeprom_write = false;
+		uint64_t eeprom_data = 0;
+		uint16_t eeprom_val = 0;
+		uint32_t eeprom_src = 0;
 
 		//DMA Transfer enabled
 		bool bStart = false;
@@ -1253,9 +1355,15 @@ void Arm::DMATransfer(MMU & mmu, PPU & ppu)
 			Dummy();
 		}
 
-		if (dma_3_addr_dest == 0xD000000) {
-			Dummy();
+		Dummy();
+
+		if (dma_3_addr_dest >= 0xD000000) {
+			eeprom_access = true;
 		}
+		if (dma_3_addr_src >= 0xD000000) {
+			eeprom_access = true;
+		}
+
 
 		//destAddr = mmu.DMA3DAD;
 
@@ -1284,20 +1392,43 @@ void Arm::DMATransfer(MMU & mmu, PPU & ppu)
 			bStart = false;
 		}
 
+		if (eeprom_access && (wordCount == 17 || wordCount == 81)) {
+			eeprom_address = 0;
+		}
+
+		if (eeprom_access && wordCount == 17) {
+			//std::cout << "EEPROM Set Read Address\nSRC Address: " << dma_3_addr_src << "\nDEST Address: " << dma_3_addr_dest << "\n\n";
+		}
+		if (eeprom_access && wordCount == 68) {
+			//std::cout << "EEPROM Read Data\nSRC Address: " << dma_3_addr_src << "\nDEST Address: " << dma_3_addr_dest << "\n\n";
+		}
+		if (eeprom_access && wordCount == 81) {
+			//std::cout << "EEPROM Write Data\nSRC Address: " << dma_3_addr_src << "\nDEST Address: " << dma_3_addr_dest << "\n\n";
+			//epWrites++;
+			//if (epWrites == 3) {
+			//	Dummy();
+			//}
+		}
+
+		//if (eeprom_access) {
+		//	if (wordCount != 17 && wordCount != 68 && wordCount != 81) {
+		//		Dummy();
+		//	}
+		//}
 
 		destCnt = bitrange(6, 5, mmu.DMA3CNT_H);
 		srcCnt = bitrange(8, 7, mmu.DMA3CNT_H);
+
+		int testNum = 0;
+
 		if (mmu.DMA3CNT_H >> 11 & 1) {
 			drq = true;
 		}
+		Dummy();
 		if (bStart) {
+			dmas++;
+			eeprom_src = dma_3_addr_src;
 			for (uint32_t i = 0; i < wordCount; i++) {
-				if (mmu.DMA3DAD == 0x600F0C0 || mmu.DMA3DAD == 0x600F0C2) {
-					Dummy();
-				}
-				if (dma_3_addr_dest == 0x600F0C0 || dma_3_addr_dest == 0x600F0C2) {
-					Dummy();
-				}
 				// Transfer
 				if (word) {
 
@@ -1306,8 +1437,102 @@ void Arm::DMATransfer(MMU & mmu, PPU & ppu)
 				}
 				else
 				{
-					uint16_t val = mmu.MemoryRead(dma_3_addr_src + 1) << 8 | mmu.MemoryRead(dma_3_addr_src);
-					mmu.MemoryWrite(dma_3_addr_dest, val);
+					if (eeprom_access) {
+						Dummy();
+						switch (wordCount)
+						{
+						case 17:
+							Dummy();
+							//EEPROM Set Read Address
+							if (i >= 2 && i <= 15) {
+								if (i == 11) {
+									Dummy();
+								}
+								uint16_t val = mmu.MemoryRead(dma_3_addr_src + 1) << 8 | mmu.MemoryRead(dma_3_addr_src);
+								eeprom_address = eeprom_address << 1;
+								eeprom_address |= (val & 1);
+							}
+							else if(i == 16)
+							{
+								eeprom_address *= 8;
+								eeprom_address += 0xD000000;
+							}
+							break;
+						case 68:
+							//EEPROM Read Data
+						{
+							Dummy();
+							if (i < 4) {
+								//eeprom_address++;
+								//dma_3_addr_dest -= 1;
+							}
+							if (i >= 4) {
+								testNum++;
+								int index = (i - 4) % 16;
+								uint16_t val = mmu.MemoryRead(eeprom_address + 1) << 8 | mmu.MemoryRead(eeprom_address);
+								
+								uint16_t nVal = (val >> index) & 1;
+								
+								//val = val & 1;
+								mmu.MemoryWrite(dma_3_addr_dest, nVal);
+								if (i > 4 && ((i - 3) % 16) == 0) {
+									eeprom_address += 2;
+								}
+							}
+							
+							break;
+						}
+						case 81:
+							//EEPROM Write Data
+							Dummy();
+							if (i >= 2 && i <= 15) {
+								//testNum++;
+								if (i == 11) {
+									Dummy();
+								}
+								uint16_t val = mmu.MemoryRead(dma_3_addr_src + 1) << 8 | mmu.MemoryRead(dma_3_addr_src);
+								eeprom_address = eeprom_address << 1;
+								eeprom_address |= (val & 1);
+								//dma_3_addr_src -= 2;
+							}
+							else if (i >= 16) {
+								//testNum++;
+								Dummy();
+								int index = (i - 16) % 16;
+								if (i == 16) {
+									eeprom_address *= 8;
+									eeprom_address += 0xD000000;
+								}
+
+								uint16_t val = (mmu.MemoryRead(dma_3_addr_src + 1) << 8 | mmu.MemoryRead(dma_3_addr_src));
+								eeprom_val = eeprom_val << 1;
+								eeprom_val |= (val & 1);
+
+								//if (i != 80) {
+								//	mmu.MemoryWrite(eeprom_address, val);
+								//}
+
+								//eeprom_val = 0;
+								//eeprom_address += 2;
+
+								if (i > 20 && (((i - 15) % 16) == 0) && i != 80) {
+									eeprom_val = ReverseBits(eeprom_val);
+									mmu.MemoryWrite(eeprom_address, eeprom_val);
+									eeprom_val = 0;
+									eeprom_address += 2;
+									eeprom_src += 2;
+								}
+
+							}
+							break;
+						}
+					}
+					else
+					{
+						uint16_t val = mmu.MemoryRead(dma_3_addr_src + 1) << 8 | mmu.MemoryRead(dma_3_addr_src);
+						mmu.MemoryWrite(dma_3_addr_dest, val);
+					}
+					
 				}
 				switch (destCnt)
 				{
@@ -1632,6 +1857,12 @@ bool Arm::Overflow(uint32_t val1, uint32_t val2, uint32_t result, bool add)
 
 void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 {
+	if (registers[0] == 0x4BDE398F && registers[1] == 0x9E2FA863 && CPSR == 0xB0000000) {
+		Dummy();
+	}
+	if (registers[1] == 0xFF) {
+		Dummy();
+	}
 	Dummy();
 	if (bitrange(15, 13, insn) == 0b000) {
 		//Thumb 1 Shift
@@ -1647,7 +1878,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		{
 			uint64_t test = static_cast<uint64_t>(registers[Rs]);
 			registers[Rd] = registers[Rs] << offset;
-			curInsnAsm = "LSL";
+			//curInsnAsm = "LSL";
 			if (registers[Rd] >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -1682,7 +1913,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			uint32_t test = registers[Rd];
 			bool carry = false;
 			registers[Rd] = registers[Rs] >> offset;
-			curInsnAsm = "LSR";
+			//curInsnAsm = "LSR";
 			if (offset == 0) {
 				registers[Rd] = 0;
 				if (registers[Rs] >> 31 & 1) {
@@ -1730,10 +1961,13 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			bool carry = false;
 			uint32_t test = registers[Rd];
 			uint32_t op2 = registers[Rs];
+			if (offset == 32) {
+				Dummy();
+			}
 			registers[Rd] = arithmeticRight(registers[Rs], offset);
 			if (offset == 0 || offset == 32) {
 				registers[Rd] = 0;
-				registers[Rd] = ~0;
+				//registers[Rd] = ~0;
 				if (test >> 31 & 1) {
 					carry = true;
 					registers[Rd] = ~0;
@@ -1766,7 +2000,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 29);
 			}
-			curInsnAsm = "ASR";
+			//curInsnAsm = "ASR";
 			break;
 		}
 		case 0b11:
@@ -1785,7 +2019,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					poss = true;
 				}
 				registers[Rd] = registers[Rs] + registers[Rn];
-				curInsnAsm = "ADD";
+				//curInsnAsm = "ADD";
 				if (registers[Rd] >> 31 & 1) {
 					SetBit(CPSR, 31);
 				}
@@ -1825,7 +2059,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				uint32_t result = Op1 - Op2;
 				registers[Rd] = registers[Rs] - registers[Rn];
 				SetBit(CPSR, 29);
-				curInsnAsm = "SUB";
+				//curInsnAsm = "SUB";
 				if (registers[Rd] >> 31 & 1) {
 					SetBit(CPSR, 31);
 				}
@@ -1864,7 +2098,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					poss = true;
 				}
 				registers[Rd] = registers[Rs] + imm;
-				curInsnAsm = "ADD";
+				//curInsnAsm = "ADD";
 				if (registers[Rd] >> 31 & 1) {
 					SetBit(CPSR, 31);
 				}
@@ -1903,7 +2137,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				uint32_t result = Op1 - Op2;
 				SetBit(CPSR, 29);
 				registers[Rd] = registers[Rs] - imm;
-				curInsnAsm = "SUB";
+				//curInsnAsm = "SUB";
 				if (registers[Rd] >> 31 & 1) {
 					SetBit(CPSR, 31);
 				}
@@ -1942,8 +2176,14 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		{
 		case 0b00:
 			// MOV
+			if (registers[0] == 0x4BDE398F && registers[1] == 0x9E2FA863) {
+				Dummy();
+			}
 			registers[Rd] = imm;
-			curInsnAsm = "MOV";
+			if (imm == 0xE0) {
+				Dummy();
+			}
+			//curInsnAsm = "MOV";
 			if (registers[Rd] >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -1968,7 +2208,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				ClearBit(CPSR, 29);
 			}
 			uint32_t result = registers[Rd] - imm;
-			curInsnAsm = "CMP";
+			//curInsnAsm = "CMP";
 			if (result >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -2002,7 +2242,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				poss = true;
 			}
 			registers[Rd] = registers[Rd] + imm;
-			curInsnAsm = "ADD";
+			//curInsnAsm = "ADD";
 			if (registers[Rd] >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -2041,7 +2281,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			uint32_t Op2 = imm;
 			SetBit(CPSR, 29);
 			registers[Rd] = registers[Rd] - imm;
-			curInsnAsm = "SUB";
+			//curInsnAsm = "SUB";
 			if (registers[Rd] >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -2093,7 +2333,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "AND";
+			//curInsnAsm = "AND";
 			break;
 		case 0x1:
 			// EOR
@@ -2112,7 +2352,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "EOR";
+			//curInsnAsm = "EOR";
 			break;
 		case 0x2:
 			// LSL
@@ -2148,7 +2388,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					ClearBit(CPSR, 29);
 				}
 			}
-			curInsnAsm = "LSL";
+			//curInsnAsm = "LSL";
 			break;
 		}
 		case 0x3:
@@ -2199,7 +2439,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 29);
 			}
-			curInsnAsm = "LSR";
+			//curInsnAsm = "LSR";
 			break;
 		}
 		case 0x4:
@@ -2208,6 +2448,9 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			bool carry = false;
 			uint32_t test = registers[Rd];
 			uint32_t offset = registers[Rs] & 0xff;
+			if (offset == 32) {
+				Dummy();
+			}
 			if (offset == 0) {
 				if (C) {
 					carry = true;
@@ -2257,7 +2500,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					ClearBit(CPSR, 29);
 				}
 			}
-			curInsnAsm = "ASR";
+			//curInsnAsm = "ASR";
 			break;
 		}
 		case 0x5:
@@ -2304,7 +2547,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 28);
 			}
-			curInsnAsm = "ADC";
+			//curInsnAsm = "ADC";
 			break;
 		}
 		case 0x6:
@@ -2343,7 +2586,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 28);
 			}
-			curInsnAsm = "SBC";
+			//curInsnAsm = "SBC";
 			break;
 		}
 		case 0x7:
@@ -2388,13 +2631,13 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					ClearBit(CPSR, 29);
 				}
 			}
-			curInsnAsm = "ROR";
+			//curInsnAsm = "ROR";
 			break;
 		}
 		case 0x8:
 			// TST
 		{
-			curInsnAsm = "TST";
+			//curInsnAsm = "TST";
 			uint32_t result = registers[Rd] & registers[Rs];
 			if (result >> 31 & 1) {
 				SetBit(CPSR, 31);
@@ -2440,12 +2683,12 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "NEG";
+			//curInsnAsm = "NEG";
 			break;
 		case 0xA:
 			// CMP
 		{
-			curInsnAsm = "CMP";
+			//curInsnAsm = "CMP";
 			uint32_t result = registers[Rd] - registers[Rs];
 			SetBit(CPSR, 29);
 			if (Overflow(registers[Rd], registers[Rs], result, false)) {
@@ -2485,7 +2728,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (registers[Rs] > 0 || registers[Rd] > 0) {
 				poss = true;
 			}
-			curInsnAsm = "CMN";
+			//curInsnAsm = "CMN";
 			uint32_t result = registers[Rd] + registers[Rs];
 			SetBit(CPSR, 29);
 			if (Overflow(registers[Rd], registers[Rs], result, true)) {
@@ -2535,7 +2778,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "ORR";
+			//curInsnAsm = "ORR";
 			break;
 		case 0xD:
 			// MUL
@@ -2554,7 +2797,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "MUL";
+			//curInsnAsm = "MUL";
 			break;
 		case 0xE:
 			// BIC
@@ -2573,7 +2816,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "BIC";
+			//curInsnAsm = "BIC";
 			break;
 		case 0xF:
 			// MVN
@@ -2592,7 +2835,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			{
 				ClearBit(CPSR, 30);
 			}
-			curInsnAsm = "MVN";
+			//curInsnAsm = "MVN";
 			break;
 		}
 	}
@@ -2620,41 +2863,8 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		case 0b00:
 			// ADD
 		{
-			uint64_t tst = uint64_t(registers[WhatRegister(Rd)]) + uint64_t(registers[WhatRegister(Rs)]);
-			bool poss = false;
-			if (registers[WhatRegister(Rd)] > 0 || registers[WhatRegister(Rs)] > 0) {
-				poss = true;
-			}
 			registers[WhatRegister(Rd)] = Op1 + Op2;
-			curInsnAsm = "ADD";
-			//if (registers[WhatRegister(Rd)] >> 31 & 1) {
-			//	SetBit(CPSR, 31);
-			//}
-			//else
-			//{
-			//	ClearBit(CPSR, 31);
-			//}
-			//if (registers[WhatRegister(Rd)] == 0) {
-			//	SetBit(CPSR, 30);
-			//}
-			//else
-			//{
-			//	ClearBit(CPSR, 30);
-			//}
-			//if ((tst > 0xFFFFFFFF) || (poss && registers[Rd] == 0) || (tst >> 32 & 1)) {
-			//	SetBit(CPSR, 29);
-			//}
-			//else
-			//{
-			//	ClearBit(CPSR, 29);
-			//}
-			//if (Overflow(registers[WhatRegister(Rd)], registers[WhatRegister(Rs)], registers[WhatRegister(Rd)], true)) {
-			//	SetBit(CPSR, 28);
-			//}
-			//else
-			//{
-			//	ClearBit(CPSR, 28);
-			//}
+			//curInsnAsm = "ADD";
 		}
 		break;
 		case 0b01:
@@ -2665,7 +2875,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				ClearBit(CPSR, 29);
 			}
 			uint32_t result = Op1 - Op2;
-			curInsnAsm = "CMP";
+			//curInsnAsm = "CMP";
 			if (result >> 31 & 1) {
 				SetBit(CPSR, 31);
 			}
@@ -2691,25 +2901,14 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		}
 		case 0b10:
 			// MOV
+			if (registers[0] == 0x4BDE398F && registers[1] == 0x9E2FA863) {
+				Dummy();
+			}
 			registers[WhatRegister(Rd)] = Op2;
 			if (Rd == 15) {
 				increment = false;
 			}
-			curInsnAsm = "MOV";
-			//if (registers[WhatRegister(Rd)] >> 31 & 1) {
-			//	SetBit(CPSR, 31);
-			//}
-			//else
-			//{
-			//	ClearBit(CPSR, 31);
-			//}
-			//if (registers[WhatRegister(Rd)] == 0) {
-			//	SetBit(CPSR, 30);
-			//}
-			//else
-			//{
-			//	ClearBit(CPSR, 30);
-			//}
+			//curInsnAsm = "MOV";
 			break;
 		case 0b11:
 			// BX/BLX
@@ -2724,29 +2923,24 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				// Stay in thumb mode
 				address -= 1;
 			}
-			if (registers[WhatRegister(Rs)] < 0x8000000) {
-				Dummy();
-			}
-			if (registers[WhatRegister(Rs)] < 0x3003CBA) {
-				Dummy();
-			}
 
 			if ((insn >> 7) & 1) {
 				// BLX
 				registers[WhatRegister(14)] = registers[30];
 				registers[30] = address;
 				increment = false;
-				curInsnAsm = "BLX";
+				//curInsnAsm = "BLX";
 			}
 			else
 			{
 				// BX
 				registers[30] = address;
-				if (registers[30] == 0) {
-					Dummy();
-				}
 				increment = false;
-				curInsnAsm = "BX";
+				//curInsnAsm = "BX";
+			}
+			if (registers[WhatRegister(Rs)] % 2 == 0) {
+				//increment = true;
+				Dummy();
 			}
 			break;
 		}
@@ -2758,7 +2952,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		offset *= 4;
 		uint32_t address = (registers[30] & ~2) + offset + 4;
 		registers[Rd] = mmu.MemoryReadWord(address);
-		curInsnAsm = "LDR PC-Relative";
+		//curInsnAsm = "LDR PC-Relative";
 	}
 	if (bitrange(15, 12, insn) == 0b0101) {
 		//Thumb 7 & 8 - load/store with register offset / load/store sign-extended byte/halfword
@@ -2790,12 +2984,12 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 
 				uint16_t val = bitrange(15, 0, registers[Rd]);
 				mmu.MemoryWrite(address, val);
-				curInsnAsm = "STRH";
+				//curInsnAsm = "STRH";
 				break;
 			}
 			case 0b01:
 				// LDSB 
-				curInsnAsm = "LDSB";
+				//curInsnAsm = "LDSB";
 				registers[Rd] = mmu.MemoryRead(address);
 				if (registers[Rd] >> 7 & 1) {
 					registers[Rd] |= 0xFFFFFF00;
@@ -2804,18 +2998,44 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				break;
 			case 0b10:
 				// LDRH 
-				curInsnAsm = "LDRH";
+			{
+				//curInsnAsm = "LDRH";
+				int rotAmnt = 0;
+				if (address % 2 != 0) {
+					address -= 1;
+					rotAmnt = 8;
+				}
 				registers[Rd] = mmu.MemoryRead(address + 1) << 8 | mmu.MemoryRead(address);
+				registers[Rd] = rotateRight(registers[Rd], rotAmnt);
 				Dummy();
+			}
 				break;
 			case 0b11:
 				// LDSH 
-				curInsnAsm = "LDSH";
+			{
+				//curInsnAsm = "LDSH";
+				int rotAmnt = 0;
+				if (address % 2 != 0) {
+					address -= 1;
+					rotAmnt = 8;
+				}
+				bool sign = false;
 				registers[Rd] = mmu.MemoryRead(address + 1) << 8 | mmu.MemoryRead(address);
 				if (registers[Rd] >> 15 & 1) {
-					registers[Rd] |= 0xFFFF0000;
+					sign = true;
 				}
-				Dummy();
+				registers[Rd] = rotateRight(registers[Rd], rotAmnt);
+				if (sign) {
+					if (rotAmnt == 0) {
+						registers[Rd] |= 0xFFFF0000;
+					}
+					else
+					{
+						registers[Rd] |= 0xFFFFFF00;
+					}
+				}
+				
+			}
 				break;
 			}
 		}
@@ -2827,14 +3047,14 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			case 0b00:
 				// STR  
 				mmu.MemoryWrite(address, registers[Rd]);
-				curInsnAsm = "STR";
+				//curInsnAsm = "STR";
 				break;
 			case 0b01:
 				// STRB
 			{
 				uint8_t val = static_cast<uint8_t>(bitrange(7, 0, registers[Rd]));
 				mmu.MemoryWrite(address, val);
-				curInsnAsm = "STRB";
+				//curInsnAsm = "STRB";
 				break;
 			}
 			case 0b10:
@@ -2844,13 +3064,13 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 				AlignAddr(address);
 				registers[Rd] = mmu.MemoryReadWord(address);
 				registers[Rd] = rotateRight(registers[Rd], rotAmnt);
-				curInsnAsm = "LDR";
+				//curInsnAsm = "LDR";
 			}
 			break;
 			case 0b11:
 				// LDRB 
 				registers[Rd] = mmu.MemoryRead(address);
-				curInsnAsm = "LDRB";
+				//curInsnAsm = "LDRB";
 				break;
 			}
 		}
@@ -2869,7 +3089,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			// STR
 			address += (offset << 2);
 			mmu.MemoryWrite(address, registers[Rd]);
-			curInsnAsm = "STR";
+			//curInsnAsm = "STR";
 			break;
 		case 0b01:
 			// LDR
@@ -2877,9 +3097,12 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			address += (offset << 2);
 			int rotAmnt = bitrange(1, 0, address) * 8;
 			AlignAddr(address);
+			if (rotAmnt > 0) {
+				Dummy();
+			}
 			registers[Rd] = mmu.MemoryReadWord(address);
 			registers[Rd] = rotateRight(registers[Rd], rotAmnt);
-			curInsnAsm = "LDR";
+			//curInsnAsm = "LDR";
 		}
 		break;
 		case 0b10:
@@ -2888,14 +3111,14 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			address += offset;
 			uint8_t val = static_cast<uint8_t>(bitrange(7, 0, registers[Rd]));
 			mmu.MemoryWrite(address, val);
-			curInsnAsm = "STRB";
+			//curInsnAsm = "STRB";
 		}
 		break;
 		case 0b11:
 			// LDRB
 			address += offset;
 			registers[Rd] = mmu.MemoryRead(address);
-			curInsnAsm = "LDRB";
+			//curInsnAsm = "LDRB";
 			break;
 		}
 
@@ -2907,15 +3130,38 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		uint32_t offset = bitrange(10, 6, insn) * 2;
 		uint32_t address = registers[Rb] + offset;
 
+		if (address >= 0x0D000000) {
+			Dummy();
+		}
+		
+
 		if (insn >> 11 & 1) {
 			// LDR
-			curInsnAsm = "LDRH";
+			if (registers[30] == 0x8000686) {
+				Dummy();
+			}
+			if (address % 2 != 0) {
+				Dummy();
+			}
+			if (registers[1] == 0xFF) {
+				Dummy();
+			}
+			//curInsnAsm = "LDRH";
+			int rotAmnt = 0;
+			if (address % 2 != 0) {
+				address -= 1;
+				rotAmnt = 8;
+			}
 			registers[Rd] = mmu.MemoryRead(address + 1) << 8 | mmu.MemoryRead(address);
+			registers[Rd] = rotateRight(registers[Rd], rotAmnt);
+			//if (address >= 0x0D000000) {
+			//	registers[Rd] = 1;
+			//}
 		}
 		else
 		{
 			// STR
-			curInsnAsm = "STRH";
+			//curInsnAsm = "STRH";
 			mmu.MemoryWrite(address, static_cast<uint16_t>(bitrange(15, 0, registers[Rd])));
 		}
 		Dummy();
@@ -2927,13 +3173,16 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		uint32_t address = registers[WhatRegister(13)] + offset;
 		if (insn >> 11 & 1) {
 			// LDR
-			curInsnAsm = "LDR SP Relative";
+			//curInsnAsm = "LDR SP Relative";
+			int rotAmnt = bitrange(1, 0, address) * 8;
+			AlignAddr(address);
 			registers[Rd] = mmu.MemoryReadWord(address);
+			registers[Rd] = rotateRight(registers[Rd], rotAmnt);
 		}
 		else
 		{
 			// STR
-			curInsnAsm = "STR SP Relative";
+			//curInsnAsm = "STR SP Relative";
 			mmu.MemoryWrite(address, registers[Rd]);
 		}
 		Dummy();
@@ -2959,13 +3208,13 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		if (insn >> 7 & 1) {
 			// ADD
 			registers[WhatRegister(13)] -= offset;
-			curInsnAsm = "SUB SP";
+			//curInsnAsm = "SUB SP";
 		}
 		else
 		{
 			// SUB
 			registers[WhatRegister(13)] += offset;
-			curInsnAsm = "ADD SP";
+			//curInsnAsm = "ADD SP";
 		}
 	}
 	if (bitrange(15, 12, insn) == 0b1011 && bitrange(10, 9, insn) == 0b10) {
@@ -2992,7 +3241,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					registers[WhatRegister(i)] = mmu.MemoryReadWord(address);
 					address += 4;
 					finishedAddr = address;
-					curInsnAsm = "POP";
+					//curInsnAsm = "POP";
 				}
 				else
 				{
@@ -3011,7 +3260,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 					}
 
 					mmu.MemoryWrite(address, registers[WhatRegister(i)]);
-					curInsnAsm = "PUSH";
+					//curInsnAsm = "PUSH";
 				}
 			}
 		}
@@ -3027,24 +3276,71 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		}
 		int Rb = bitrange(10, 8, insn);
 		uint32_t address = registers[Rb];
+		bool empty = true;
+		bool write = true;
+		uint32_t ogAddress = address;
+		bool first = false;
+		bool special = false;
 		for (int i = 0; i < 8; i++) {
 			if (insn >> i & 1) {
 				if (insn >> 11 & 1) {
 					//LDMIA
 					registers[i] = mmu.MemoryReadWord(address);
 					address += 4;
-					curInsnAsm = "LDMIA";
+					//curInsnAsm = "LDMIA";
+					if (Rb == i) {
+						write = false;
+					}
 				}
 				else
 				{
 					//STMIA
+					if (address == 0x7000000) {
+						Dummy();
+					}
 					mmu.MemoryWrite(address, registers[i]);
 					address += 4;
-					curInsnAsm = "STMIA";
+					//curInsnAsm = "STMIA";
+					if (Rb == i) {
+						if (empty) {
+							first = true;
+							mmu.MemoryWrite(address, ogAddress);
+						}
+						else
+						{
+							write = true;
+							ogAddress = address - 4;
+							special = true;
+						}
+					}
 				}
+				empty = false;
 			}
 		}
-		registers[Rb] = address;
+		if (special) {
+			mmu.MemoryWrite(ogAddress, address);
+		}
+		if (empty) {
+			if (insn >> 11 & 1) {
+				//LDMIA
+				registers[30] = mmu.MemoryReadWord(address);
+				address += 4;
+				//curInsnAsm = "LDMIA";
+				increment = false;
+			}
+			else
+			{
+				//STMIA
+				mmu.MemoryWrite(address, registers[30] + 6);
+				address += 4;
+				//curInsnAsm = "STMIA";
+			}
+			registers[Rb] += 0x40;
+		}
+		else if(write)
+		{
+			registers[Rb] = address;
+		}
 	}
 	if (bitrange(15, 12, insn) == 0b1101) {
 		//Thumb 16 - Conditional Branch
@@ -3060,7 +3356,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (Z) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BEQ";
+				//curInsnAsm = "BEQ";
 			}
 			break;
 		case 0x1:
@@ -3068,7 +3364,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (!Z) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BNE";
+				//curInsnAsm = "BNE";
 			}
 			break;
 		case 0x2:
@@ -3076,7 +3372,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (C) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BCS";
+				//curInsnAsm = "BCS";
 			}
 			break;
 		case 0x3:
@@ -3084,7 +3380,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (!C) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BCC";
+				//curInsnAsm = "BCC";
 			}
 			break;
 		case 0x4:
@@ -3092,7 +3388,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (N) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BMI";
+				//curInsnAsm = "BMI";
 			}
 			break;
 		case 0x5:
@@ -3100,7 +3396,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (!N) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BPL";
+				//curInsnAsm = "BPL";
 			}
 			break;
 		case 0x6:
@@ -3108,7 +3404,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (V) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BVS";
+				//curInsnAsm = "BVS";
 			}
 			break;
 		case 0x7:
@@ -3116,7 +3412,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (!V) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BVC";
+				//curInsnAsm = "BVC";
 			}
 			break;
 		case 0x8:
@@ -3124,7 +3420,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (C && !Z) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BHI";
+				//curInsnAsm = "BHI";
 			}
 			break;
 		case 0x9:
@@ -3132,7 +3428,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (!C || Z) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BLS";
+				//curInsnAsm = "BLS";
 			}
 			break;
 		case 0xA:
@@ -3140,7 +3436,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (N == V) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BGE";
+				//curInsnAsm = "BGE";
 			}
 			break;
 		case 0xB:
@@ -3148,7 +3444,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (N != V) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BLT";
+				//curInsnAsm = "BLT";
 			}
 			break;
 		case 0xC:
@@ -3156,7 +3452,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (!Z && N == V) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BGT";
+				//curInsnAsm = "BGT";
 			}
 			break;
 		case 0xD:
@@ -3164,7 +3460,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			if (Z || N != V) {
 				registers[30] += offset + 4;
 				increment = false;
-				curInsnAsm = "BLE";
+				//curInsnAsm = "BLE";
 			}
 			break;
 		case 0xE:
@@ -3181,7 +3477,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 			CPSR |= 0b10011;
 			registers[30] = 0x8;
 			increment = false;
-			curInsnAsm = "SWI";
+			//curInsnAsm = "SWI";
 			break;
 
 		}
@@ -3194,7 +3490,7 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		}
 		registers[30] += offset + 4;
 		increment = false;
-		curInsnAsm = "B";
+		//curInsnAsm = "B";
 	}
 	if (bitrange(15, 11, insn) == 0b11110) {
 		//Thumb 19 - Long Branch and Link
@@ -3217,11 +3513,11 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 
 			registers[30] = registers[WhatRegister(14)] + target;
 			registers[WhatRegister(14)] = retAddr + 3;
-			curInsnAsm = "BL";
+			//curInsnAsm = "BL";
 		}
 		else
 		{
-			curInsnAsm = "BLX";
+			//curInsnAsm = "BLX";
 		}
 
 
@@ -3238,11 +3534,11 @@ void Arm::DecodeThumb(uint16_t insn, MMU& mmu)
 		//if ((insn2 >> 12) & 1) {
 		//	registers[WhatRegister(14)] = registers[30];
 		//	registers[30] += target + 4;
-		//	curInsnAsm = "BL";
+		//	//curInsnAsm = "BL";
 		//}
 		//else
 		//{
-		//	curInsnAsm = "BLX";
+		//	//curInsnAsm = "BLX";
 		//}
 		increment = false;
 
@@ -3474,10 +3770,55 @@ uint32_t Arm::bitrange(int msb, int lsb, uint64_t insn)
 	return (insn >> lsb) & ~(~0 << (msb - lsb + 1));
 }
 
+void Arm::DecodeArm(MMU & mmu)
+{
+	if (Condition(Ainsn)) {
+		
+		if (registers[8] == 32 && mode == Mode::Fiq) {
+			Dummy();
+		}
+		
+		uint32_t upper = ((Ainsn >> 20) & 0xFF) << 4;
+		uint32_t lower = (Ainsn & 0xF0) >> 4;
+		uint32_t nInsn = upper | lower;
+		if (ArmFunc[nInsn] != NULL) {
+			(this->*ArmFunc[nInsn])(mmu);
+		}
+		else {
+			//std::cerr << "Error: Instruction " << Ainsn << std::endl;
+			//std::cerr << "Register 30: " << registers[30] << std::endl << std::endl;
+		}
+	}
+}
+
 void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 {
 	if (Condition(insn)) {
-		uint16_t nInsn = (((insn >> 20) & 0xFF) << 4) | (insn & 0xF);
+
+		//uint16_t nInsn = (((insn >> 20) & 0xFF) << 4) | (insn & 0xF);
+		//(this->*ArmFunc[nInsn])(mmu);
+		numm++;
+		//if (numm >= 278500) {
+		//	WriteToLogA(numm);
+		//}
+		//if (numm == 285000) {
+		//	Dummy();
+		//}
+		//if (numm == 278806) {
+		//	Dummy();
+		//}
+		//if (numm == 278798) {
+		//	Dummy();
+		//}
+		//if (numm >= 275000 && numm <= 280000) {
+		//	WriteToLogA(numm);
+		//}
+		//if (numm == 280000) {
+		//	Dummy();
+		//}
+		if (numm == 278817) {
+			Dummy();
+		}
 		bool S = false;
 		if ((insn >> 20) & 1) {
 			S = true;
@@ -3493,12 +3834,12 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 		if (bitrange(27, 25, insn) == 0b101) {
 			if ((insn >> 24) & 1) {
 				BL(insn);
-				curInsnAsm = "BL";
+				//curInsnAsm = "BL";
 			}
 			else
 			{
 				B(insn);
-				curInsnAsm = "B";
+				//curInsnAsm = "B";
 			}
 		}
 		// Branch & Exchange
@@ -3521,7 +3862,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				registers[30] = Rn;
 				increment = false;
 				ok = false;
-				curInsnAsm = "BX";
+				//curInsnAsm = "BX";
 			}
 			// BLX
 			if (bitrange(7, 4, insn) == 0b0011) {
@@ -3529,7 +3870,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				registers[30] = Rn;
 				increment = false;
 				ok = false;
-				curInsnAsm = "BXL";
+				//curInsnAsm = "BXL";
 			}
 		}
 
@@ -3543,7 +3884,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 			CPSR |= 0b10011;
 			registers[30] = 0x8;
 			increment = false;
-			curInsnAsm = "SWI";
+			//curInsnAsm = "SWI";
 		}
 
 
@@ -3585,7 +3926,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					registers[Rd] = CPSR;
 				}
 
-				curInsnAsm = "MRS";
+				//curInsnAsm = "MRS";
 			}
 			else if ((bitrange(25, 23, insn) == 0b110) && (bitrange(21, 20, insn) == 0b10)) {
 				// MSR Immediate
@@ -3662,7 +4003,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						break;
 					}
 				}
-				curInsnAsm = "MSR";
+				//curInsnAsm = "MSR";
 			}
 			else if ((bitrange(25, 23, insn) == 0b010) && (bitrange(21, 20, insn) == 0b10)) {
 				// MSR Register
@@ -3740,7 +4081,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						break;
 					}
 				}
-				curInsnAsm = "MSR";
+				//curInsnAsm = "MSR";
 			}
 			else
 
@@ -4131,7 +4472,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlags(registers[Rd], carry, false, false);
 						}
-						curInsnAsm = "AND";
+						//curInsnAsm = "AND";
 						break;
 					case 0x1:
 						// EOR
@@ -4139,7 +4480,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlags(registers[Rd], carry, false, false);
 						}
-						curInsnAsm = "EOR";
+						//curInsnAsm = "EOR";
 						break;
 					case 0x2:
 					{
@@ -4152,7 +4493,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlagsSub(registers[Rd], (Op2 > Op1), (Overflow(Op1, Op2, registers[Rd], false)), true);
 						}
-						curInsnAsm = "SUB";
+						//curInsnAsm = "SUB";
 						break;
 					}
 					case 0x3:
@@ -4164,7 +4505,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlagsSub(registers[Rd], (Op1 > Op2), (Overflow(Op2, Op1, registers[Rd], false)), true);
 						}
-						curInsnAsm = "RSB";
+						//curInsnAsm = "RSB";
 						break;
 					}
 					case 0x4:
@@ -4180,7 +4521,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							SetFlags(registers[Rd], (((Op1 + Op2) > 0xFFFFFFFF) || (poss && registers[Rd] == 0) || (tst >> 32 & 1)), (Overflow(Op1, Op2, registers[Rd], true)), true);
 						}
 
-						curInsnAsm = "ADD";
+						//curInsnAsm = "ADD";
 						break;
 					}
 					case 0x5:
@@ -4201,7 +4542,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							SetFlags(registers[Rd], ((tst > 0xFFFFFFFF) || (poss && registers[Rd] == 0)), (Overflow(Op1, Op2, registers[Rd], true)), true);
 						}
 
-						curInsnAsm = "ADC";
+						//curInsnAsm = "ADC";
 						break;
 					}
 					case 0x6:
@@ -4220,7 +4561,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							SetFlagsSub(registers[Rd], ((Op2 > Op1) || ((Op2 == Op1) && cv)), (Overflow(Op1, Op2, registers[Rd], false)), true);
 						}
 
-						curInsnAsm = "SBC";
+						//curInsnAsm = "SBC";
 						break;
 					}
 					case 0x7:
@@ -4238,21 +4579,21 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							SetFlagsSub(registers[Rd], (og > Op2), (Overflow(Op2, og, registers[Rd], false)), true);
 						}
 
-						curInsnAsm = "RSC";
+						//curInsnAsm = "RSC";
 						break;
 					}
 					case 0x8:
 						// TST
 						if (S) {
 							SetFlags((Op1 & Op2), carry, false, false);
-							curInsnAsm = "TST";
+							//curInsnAsm = "TST";
 						}
 						break;
 					case 0x9:
 						// TEQ
 						if (S) {
 							SetFlags((Op1 ^ Op2), carry, false, false);
-							curInsnAsm = "TEQ";
+							//curInsnAsm = "TEQ";
 						}
 						break;
 					case 0xA:
@@ -4263,7 +4604,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							uint32_t result = Op1 - Op2;
 							SetBit(CPSR, 29);
 							SetFlagsSub(result, (Op2 > Op1), (Overflow(Op1, Op2, result, false)), true);
-							curInsnAsm = "CMP";
+							//curInsnAsm = "CMP";
 						}
 						break;
 					}
@@ -4279,7 +4620,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							}
 							uint64_t tst = uint64_t(Op1) + uint64_t(Op2);
 							SetFlags(result, ((tst > 0xFFFFFFFF) || (poss && result == 0)), (Overflow(Op1, Op2, result, true)), true);
-							curInsnAsm = "CMN";
+							//curInsnAsm = "CMN";
 						}
 						break;
 					}
@@ -4289,7 +4630,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlags(registers[Rd], carry, false, false);
 						}
-						curInsnAsm = "ORR";
+						//curInsnAsm = "ORR";
 						break;
 					case 0xD:
 						// MOV
@@ -4300,7 +4641,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlags(registers[Rd], carry, false, false);
 						}
-						curInsnAsm = "MOV";
+						//curInsnAsm = "MOV";
 						break;
 					case 0xE:
 						// BIC
@@ -4308,7 +4649,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlags(registers[Rd], carry, false, false);
 						}
-						curInsnAsm = "BIC";
+						//curInsnAsm = "BIC";
 						break;
 					case 0xF:
 						// MVN
@@ -4316,7 +4657,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						if (S) {
 							SetFlags(registers[Rd], carry, false, false);
 						}
-						curInsnAsm = "MVN";
+						//curInsnAsm = "MVN";
 						break;
 
 					default:
@@ -4354,7 +4695,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				{
 					ClearBit(CPSR, 31);
 				}
-				curInsnAsm = "MUL";
+				//curInsnAsm = "MUL";
 				break;
 			case 0b0001:
 				// MLA
@@ -4373,7 +4714,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				{
 					ClearBit(CPSR, 31);
 				}
-				curInsnAsm = "MLA";
+				//curInsnAsm = "MLA";
 				break;
 			case 0b0100:
 			{
@@ -4403,7 +4744,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				{
 					ClearBit(CPSR, 31);
 				}
-				curInsnAsm = "UMULL";
+				//curInsnAsm = "UMULL";
 				break;
 			}
 			case 0b0101:
@@ -4434,7 +4775,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				{
 					ClearBit(CPSR, 31);
 				}
-				curInsnAsm = "UMLAL";
+				//curInsnAsm = "UMLAL";
 				break;
 			}
 			case 0b0110:
@@ -4467,7 +4808,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				{
 					ClearBit(CPSR, 31);
 				}
-				curInsnAsm = "SMULL";
+				//curInsnAsm = "SMULL";
 				break;
 			}
 			case 0b0111:
@@ -4508,7 +4849,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				{
 					ClearBit(CPSR, 31);
 				}
-				curInsnAsm = "SMLAL";
+				//curInsnAsm = "SMLAL";
 				break;
 			}
 			}
@@ -4636,7 +4977,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					//if (Rd == 15) {
 					//	registers[WhatRegister(Rd)] += 4;
 					//}
-					curInsnAsm = "LDR{B}{T}";
+					//curInsnAsm = "LDR{B}{T}";
 				}
 				else
 				{
@@ -4659,7 +5000,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					if (Rd == 15) {
 						increment = false;
 					}
-					curInsnAsm = "LDR{W}{T}";
+					//curInsnAsm = "LDR{W}{T}";
 				}
 
 			}
@@ -4672,7 +5013,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 				}
 				if (B) {
 					mmu.MemoryWrite(address, static_cast<uint8_t>(registers[WhatRegister(Rd)]));
-					curInsnAsm = "STR{B}{T}";
+					//curInsnAsm = "STR{B}{T}";
 				}
 				else
 				{
@@ -4682,7 +5023,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
 					//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
 					mmu.MemoryWrite(address, val);
-					curInsnAsm = "STR{W}{T}";
+					//curInsnAsm = "STR{W}{T}";
 				}
 
 
@@ -4756,7 +5097,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					{
 					case 0x0:
 						// Reserved
-						curInsnAsm = "NOP";
+						//curInsnAsm = "NOP";
 						break;
 					case 0x1:
 					{
@@ -4773,7 +5114,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						uint32_t val = (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
 						val = rotateRight(val, rotAmnt);
 						registers[WhatRegister(Rd)] = val;
-						curInsnAsm = "LDR H";
+						//curInsnAsm = "LDR H";
 						break;
 					}
 					case 0x2:
@@ -4793,7 +5134,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						{
 							registers[WhatRegister(Rd)] = val;
 						}
-						curInsnAsm = "LDR SB";
+						//curInsnAsm = "LDR SB";
 						break;
 					}
 					case 0x3:
@@ -4828,7 +5169,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						{
 							registers[WhatRegister(Rd)] = val;
 						}
-						curInsnAsm = "LDR SH";
+						//curInsnAsm = "LDR SH";
 						break;
 					}
 					}
@@ -4854,7 +5195,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 							Dummy();
 						}
 						mmu.MemoryWrite(address, static_cast<uint16_t>(bitrange(15, 0, registers[WhatRegister(Rd)])));
-						curInsnAsm = "STR H";
+						//curInsnAsm = "STR H";
 						break;
 					case 0x2:
 						// Load doubleword
@@ -4866,7 +5207,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						}
 						registers[WhatRegister(Rd)] = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
 						registers[WhatRegister(Rd) + 1] = (mmu.MemoryRead(address + 7) << 24) | (mmu.MemoryRead(address + 6) << 16) | (mmu.MemoryRead(address + 5) << 8) | mmu.MemoryRead(address + 4);
-						curInsnAsm = "LDR D";
+						//curInsnAsm = "LDR D";
 						break;
 					case 0x3:
 						// Store doubleword
@@ -4881,7 +5222,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 						mmu.MemoryWrite(address + 5, static_cast<uint8_t>(bitrange(15, 8, registers[WhatRegister(Rd) + 1])));
 						mmu.MemoryWrite(address + 6, static_cast<uint8_t>(bitrange(23, 16, registers[WhatRegister(Rd) + 1])));
 						mmu.MemoryWrite(address + 7, static_cast<uint8_t>(bitrange(31, 24, registers[WhatRegister(Rd) + 1])));
-						curInsnAsm = "STR D";
+						//curInsnAsm = "STR D";
 						break;
 					}
 				}
@@ -5102,7 +5443,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								//if (i == 15) {
 								//	registers[WhatRegister(i)] += 4;
 								//}
-								curInsnAsm = "LDM IB";
+								//curInsnAsm = "LDM IB";
 							}
 							else
 							{
@@ -5113,7 +5454,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
 								mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
 								mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
-								curInsnAsm = "STM IB";
+								//curInsnAsm = "STM IB";
 								stm = true;
 							}
 						}
@@ -5137,7 +5478,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								//if (i == 15) {
 								//	registers[WhatRegister(i)] += 4;
 								//}
-								curInsnAsm = "LDM DB";
+								//curInsnAsm = "LDM DB";
 							}
 							else
 							{
@@ -5148,7 +5489,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
 								mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
 								mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
-								curInsnAsm = "STM DB";
+								//curInsnAsm = "STM DB";
 								stm = true;
 							}
 						}
@@ -5175,7 +5516,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								//if (i == 15) {
 								//	registers[WhatRegister(i)] += 4;
 								//}
-								curInsnAsm = "LDM IA";
+								//curInsnAsm = "LDM IA";
 							}
 							else
 							{
@@ -5186,7 +5527,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
 								mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
 								mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
-								curInsnAsm = "STM IA";
+								//curInsnAsm = "STM IA";
 								stm = true;
 							}
 						}
@@ -5212,7 +5553,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								//if (i == 15) {
 								//	registers[WhatRegister(i)] += 4;
 								//}
-								curInsnAsm = "LDM DA";
+								//curInsnAsm = "LDM DA";
 							}
 							else
 							{
@@ -5224,7 +5565,7 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 								mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
 								mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
 
-								curInsnAsm = "STM DA";
+								//curInsnAsm = "STM DA";
 								stm = true;
 							}
 						}
@@ -5330,18 +5671,12 @@ void Arm::Decode(uint32_t insn, PPU& ppu, MMU& mmu)
 					registers[WhatRegister(Rd)] = val;
 				}
 			}
-			curInsnAsm = "SWP";
+			//curInsnAsm = "SWP";
 		}
 		
 		//ArmFunc[nInsn];
 
 	}
-
-	else
-	{
-		Dummy();
-	}
-
 }
 
 void Arm::B(uint32_t insn)
@@ -5370,39 +5705,588 @@ void Arm::BL(uint32_t insn)
 	increment = false;
 }
 
-void Arm::GenerateTable()
+void Arm::MRSR(MMU & mmu)
 {
-	for (int i = 0; i < 0xFFF; i++) {
-		if ((i >= 0 && i <= 0b1000) || i == 0b1010 || i == 0b1100 || i == 0b1110) {
-			AND(0);
+	// MRS
+	// SPSR
+	//curInsnAsm = "MRSR";
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
+	switch (mode)
+	{
+	case Arm::Mode::User:
+		break;
+	case Arm::Mode::Fiq:
+		registers[Rd] = SPSR_fiq;
+		break;
+	case Arm::Mode::Irq:
+		registers[Rd] = SPSR_irq;
+		break;
+	case Arm::Mode::Supervisor:
+		registers[Rd] = SPSR_svc;
+		break;
+	case Arm::Mode::Abort:
+		registers[Rd] = SPSR_abt;
+		break;
+	case Arm::Mode::Undefined:
+		registers[Rd] = SPSR_und;
+		break;
+	case Arm::Mode::System:
+		registers[Rd] = CPSR;
+		break;
+	}
+}
+
+void Arm::MRS(MMU & mmu)
+{
+	// MRS
+	// CPSR
+	//curInsnAsm = "MRS";
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
+	registers[Rd] = CPSR;
+}
+
+void Arm::MSR(MMU & mmu)
+{
+	//curInsnAsm = "MSR";
+	int Rm = WhatRegister(bitrange(3, 0, Ainsn));
+	uint32_t val = registers[Rm];
+	uint32_t mask = 0;
+	if ((Ainsn >> 19) & 1) {
+		mask |= 0xFF000000;
+	}
+	if ((Ainsn >> 18) & 1) {
+		mask |= 0x00FF0000;
+	}
+	if ((Ainsn >> 17) & 1) {
+		mask |= 0x0000FF00;
+	}
+	if ((Ainsn >> 16) & 1) {
+		mask |= 0x000000FF;
+	}
+	//CPSR
+	uint32_t old_CPSR = CPSR;
+	CPSR &= ~mask;
+	CPSR |= val;
+	switch (bitrange(4, 0, CPSR))
+	{
+	case 0b10001:
+		//FIQ
+		SPSR_fiq = old_CPSR;
+		break;
+	case 0b10010:
+		//IRQ
+		SPSR_irq = old_CPSR;
+		//registers[WhatRegister(14)] = registers[30] + 4;
+		//registers[30] = 0x18;
+		//increment = false;
+		break;
+	case 0b10011:
+		//SWI
+		SPSR_svc = old_CPSR;
+		break;
+	case 0b10111:
+		//ABT
+		SPSR_abt = old_CPSR;
+		break;
+	case 0b11011:
+		//UND
+		SPSR_und = old_CPSR;
+		break;
+	}
+}
+
+void Arm::MSRR(MMU & mmu)
+{
+	//curInsnAsm = "MSRR";
+	int Rm = WhatRegister(bitrange(3, 0, Ainsn));
+	uint32_t val = registers[Rm];
+	uint32_t mask = 0;
+	if ((Ainsn >> 19) & 1) {
+		mask |= 0xFF000000;
+	}
+	if ((Ainsn >> 18) & 1) {
+		mask |= 0x00FF0000;
+	}
+	if ((Ainsn >> 17) & 1) {
+		mask |= 0x0000FF00;
+	}
+	if ((Ainsn >> 16) & 1) {
+		mask |= 0x000000FF;
+	}
+	// SPSR_MODE
+	switch (mode)
+	{
+	case Arm::Mode::User:
+		break;
+	case Arm::Mode::Fiq:
+		SPSR_fiq = val;
+		break;
+	case Arm::Mode::Irq:
+		SPSR_irq = val;
+		break;
+	case Arm::Mode::Supervisor:
+		SPSR_svc = val;
+		break;
+	case Arm::Mode::Abort:
+		SPSR_abt = val;
+		break;
+	case Arm::Mode::Undefined:
+		SPSR_und = val;
+		break;
+	case Arm::Mode::System:
+		break;
+	}
+}
+
+void Arm::MSRI(MMU & mmu)
+{
+	//curInsnAsm = "MSRI";
+	// MSR Immediate
+	uint32_t mask = 0;
+	if ((Ainsn >> 19) & 1) {
+		mask |= 0xFF000000;
+	}
+	if ((Ainsn >> 18) & 1) {
+		mask |= 0x00FF0000;
+	}
+	if ((Ainsn >> 17) & 1) {
+		mask |= 0x0000FF00;
+	}
+	if ((Ainsn >> 16) & 1) {
+		mask |= 0x000000FF;
+	}
+	uint32_t imm = bitrange(7, 0, Ainsn);
+	uint16_t shiftAmnt = (bitrange(11, 8, Ainsn)) * 2;
+	imm = rotateRight(imm, shiftAmnt);
+	//CPSR
+	uint32_t old_CPSR = CPSR;
+	CPSR &= ~mask;
+	CPSR |= imm;
+	switch (bitrange(4, 0, CPSR))
+	{
+	case 0b10001:
+		//FIQ
+		SPSR_fiq = old_CPSR;
+		break;
+	case 0b10010:
+		//IRQ
+		SPSR_irq = old_CPSR;
+		break;
+	case 0b10011:
+		//SWI
+		SPSR_svc = old_CPSR;
+		break;
+	case 0b10111:
+		//ABT
+		SPSR_abt = old_CPSR;
+		break;
+	case 0b11011:
+		//UND
+		SPSR_und = old_CPSR;
+		break;
+	default:
+		break;
+	}
+}
+
+void Arm::MSRRI(MMU & mmu)
+{
+	//curInsnAsm = "MSRRI";
+	// MSR Immediate
+	uint32_t mask = 0;
+	if ((Ainsn >> 19) & 1) {
+		mask |= 0xFF000000;
+	}
+	if ((Ainsn >> 18) & 1) {
+		mask |= 0x00FF0000;
+	}
+	if ((Ainsn >> 17) & 1) {
+		mask |= 0x0000FF00;
+	}
+	if ((Ainsn >> 16) & 1) {
+		mask |= 0x000000FF;
+	}
+	uint32_t imm = bitrange(7, 0, Ainsn);
+	uint16_t shiftAmnt = (bitrange(11, 8, Ainsn)) * 2;
+	imm = rotateRight(imm, shiftAmnt);
+	// SPSR_MODE
+	switch (mode)
+	{
+	case Arm::Mode::User:
+		break;
+	case Arm::Mode::Fiq:
+		SPSR_fiq = imm;
+		break;
+	case Arm::Mode::Irq:
+		SPSR_irq = imm;
+		break;
+	case Arm::Mode::Supervisor:
+		SPSR_svc = imm;
+		break;
+	case Arm::Mode::Abort:
+		SPSR_abt = imm;
+		break;
+	case Arm::Mode::Undefined:
+		SPSR_und = imm;
+		break;
+	case Arm::Mode::System:
+		break;
+	}
+	
+}
+
+void Arm::GenerateTable(MMU& mmu)
+{
+	for (int i = 0; i < 0xfff; i++) {
+		
+		int upper = (i & 0b111111110000) >> 4;
+		int lower = i & 0b1111;
+		
+		using x = Arm;
+
+		if (upper <= 0b00011111) {
+			if (lower == 0b1001) {
+				if (upper == 0 || upper == 1) {
+					ArmFunc[i] = &x::MUL;
+				}
+				else if (upper == 2 || upper == 3) {
+					ArmFunc[i] = &x::MLA;
+				}
+				else if (upper == 8 || upper == 9) {
+					ArmFunc[i] = &x::UMULL;
+				}
+				else if (upper == 10 || upper == 11) {
+					ArmFunc[i] = &x::UMLAL;
+				}
+				else if (upper == 12 || upper == 13) {
+					ArmFunc[i] = &x::SMULL;
+				}
+				else if (upper == 14 || upper == 15) {
+					ArmFunc[i] = &x::SMLAL;
+				}
+				else if (upper == 16) {
+					ArmFunc[i] = &x::SWP;
+				}
+				else if (upper == 20) {
+					ArmFunc[i] = &x::SWPB;
+				}
+				else if (upper >= 24 && upper <= 31) {
+					ArmFunc[i] = &x::SMLAL;
+				}
+			}
+			else if (lower == 0b1011) {
+				ArmFunc[i] = &x::HDSDT;
+			}
+			else if ((lower == 0b1101 || lower == 0b1111) && (upper % 2 != 0)) {
+				ArmFunc[i] = &x::HDSDT;
+			}
+			else if (upper == 0 || upper == 1) {
+				ArmFunc[i] = &x::AND;
+			}
+			else if (upper == 2 || upper == 3) {
+				ArmFunc[i] = &x::EOR;
+			}
+			else if (upper == 4 || upper == 5) {
+				ArmFunc[i] = &x::SUB;
+			}
+			else if (upper == 6 || upper == 7) {
+				ArmFunc[i] = &x::RSB;
+			}
+			else if (upper == 8 || upper == 9) {
+				ArmFunc[i] = &x::ADD;
+			}
+			else if (upper == 10 || upper == 11) {
+				ArmFunc[i] = &x::ADC;
+			}
+			else if (upper == 12 || upper == 13) {
+				ArmFunc[i] = &x::SBC;
+			}
+			else if (upper == 14 || upper == 15) {
+				ArmFunc[i] = &x::RSC;
+			}
+			else if (upper == 16 && lower == 0) {
+				ArmFunc[i] = &x::MRS;
+			}
+			else if (upper == 17) {
+				ArmFunc[i] = &x::TST;
+			}
+			else if (upper == 18) {
+				if (lower == 0) {
+					ArmFunc[i] = &x::MSR;
+				}
+				else if (lower == 1) {
+					ArmFunc[i] = &x::BrX;
+				}
+			}
+			else if (upper == 19) {
+				ArmFunc[i] = &x::TEQ;
+			}
+			else if (upper == 20 && lower == 0) {
+				ArmFunc[i] = &x::MRSR;
+			}
+			else if (upper == 21) {
+				ArmFunc[i] = &x::CMP;
+			}
+			else if (upper == 22 && lower == 0) {
+				ArmFunc[i] = &x::MSRR;
+			}
+			else if (upper == 23) {
+				ArmFunc[i] = &x::CMN;
+			}
+			else if (upper == 24 || upper == 25) {
+				ArmFunc[i] = &x::ORR;
+			}
+			else if (upper == 26 || upper == 27) {
+				ArmFunc[i] = &x::MOV;
+			}
+			else if (upper == 28 || upper == 29) {
+				ArmFunc[i] = &x::BIC;
+			}
+			else if (upper == 30 || upper == 31) {
+				ArmFunc[i] = &x::MVN;
+			}
 		}
-		else if (i == 0b1001) {
-			//MUL
+		else if (upper == 32 || upper == 33) {
+			ArmFunc[i] = &x::AND;
 		}
-		else if (i == 0b1011) {
-			//STRH
+		else if (upper == 34 || upper == 35) {
+			ArmFunc[i] = &x::EOR;
 		}
-		else if (i >= 0 || i <= 8) {
-			//AND
+		else if (upper == 36 || upper == 37) {
+			ArmFunc[i] = &x::SUB;
 		}
-		else if (i >= 0 || i <= 8) {
-			//AND
+		else if (upper == 38 || upper == 39) {
+			ArmFunc[i] = &x::RSB;
 		}
-		else if (i >= 0 || i <= 8) {
-			//AND
+		else if (upper == 40 || upper == 41) {
+			ArmFunc[i] = &x::ADD;
 		}
-		else if (i >= 0 || i <= 8) {
-			//AND
+		else if (upper == 42 || upper == 43) {
+			ArmFunc[i] = &x::ADC;
+		}
+		else if (upper == 44 || upper == 45) {
+			ArmFunc[i] = &x::SBC;
+		}
+		else if (upper == 46 || upper == 47) {
+			ArmFunc[i] = &x::RSC;
+		}
+		else if (upper == 48 || upper == 49) {
+			ArmFunc[i] = &x::TST;
+		}
+		else if (upper == 50) {
+			ArmFunc[i] = &x::MSRI;
+		}
+		else if (upper == 51) {
+			ArmFunc[i] = &x::TEQ;
+		}
+		else if (upper == 52 || upper == 53) {
+			ArmFunc[i] = &x::CMP;
+		}
+		else if (upper == 54) {
+			ArmFunc[i] = &x::MSRRI;
+		}
+		else if (upper == 55) {
+			ArmFunc[i] = &x::CMN;
+		}
+		else if (upper == 56 || upper == 57) {
+			ArmFunc[i] = &x::ORR;
+		}
+		else if (upper == 58 || upper == 59) {
+			ArmFunc[i] = &x::MOV;
+		}
+		else if (upper == 60 || upper == 61) {
+			ArmFunc[i] = &x::BIC;
+		}
+		else if (upper == 62 || upper == 63) {
+			ArmFunc[i] = &x::MVN;
+		}
+		//Single Data Transfer Immediate
+		else if (upper == 64) {
+			ArmFunc[i] = &x::STRI;
+		}
+		else if (upper == 65) {
+			ArmFunc[i] = &x::LDRI;
+		}
+		else if (upper == 66) {
+			ArmFunc[i] = &x::STRTI;
+		}
+		else if (upper == 67) {
+			ArmFunc[i] = &x::LDRTI;
+		}
+		else if (upper == 68) {
+			ArmFunc[i] = &x::STRBI;
+		}
+		else if (upper == 69) {
+			ArmFunc[i] = &x::LDRBI;
+		}
+		else if (upper == 70) {
+			ArmFunc[i] = &x::STRBTI;
+		}
+		else if (upper == 71) {
+			ArmFunc[i] = &x::LDRBTI;
+		}
+		else if (upper == 72) {
+			ArmFunc[i] = &x::STRI;
+		}
+		else if (upper == 73) {
+			ArmFunc[i] = &x::LDRI;
+		}
+		else if (upper == 74) {
+			ArmFunc[i] = &x::STRTI;
+		}
+		else if (upper == 75) {
+			ArmFunc[i] = &x::LDRTI;
+		}
+		else if (upper == 76) {
+			ArmFunc[i] = &x::STRBI;
+		}
+		else if (upper == 77) {
+			ArmFunc[i] = &x::LDRBI;
+		}
+		else if (upper == 78) {
+			ArmFunc[i] = &x::STRBTI;
+		}
+		else if (upper == 79) {
+			ArmFunc[i] = &x::LDRBTI;
+		}
+		else if (upper == 80) {
+			ArmFunc[i] = &x::STRPI;
+		}
+		else if (upper == 81) {
+			ArmFunc[i] = &x::LDRPI;
+		}
+		else if (upper == 82) {
+			ArmFunc[i] = &x::STRPI;
+		}
+		else if (upper == 83) {
+			ArmFunc[i] = &x::LDRPI;
+		}
+		else if (upper == 84) {
+			ArmFunc[i] = &x::STRBPI;
+		}
+		else if (upper == 85) {
+			ArmFunc[i] = &x::LDRBPI;
+		}
+		else if (upper == 86) {
+			ArmFunc[i] = &x::STRBPI;
+		}
+		else if (upper == 87) {
+			ArmFunc[i] = &x::LDRBPI;
+		}
+		else if (upper == 88) {
+			ArmFunc[i] = &x::STRPUI;
+		}
+		else if (upper == 89) {
+			ArmFunc[i] = &x::LDRPUI;
+		}
+		else if (upper == 90) {
+			ArmFunc[i] = &x::STRPUWI;
+		}
+		else if (upper == 91) {
+			ArmFunc[i] = &x::LDRPUWI;
+		}
+		else if (upper == 92) {
+			ArmFunc[i] = &x::STRBPUI;
+		}
+		else if (upper == 93) {
+			ArmFunc[i] = &x::LDRBPUI;
+		}
+		else if (upper == 94) {
+			ArmFunc[i] = &x::STRBPUWI;
+		}
+		else if (upper == 95) {
+			ArmFunc[i] = &x::LDRBPUWI;
+		}
+		//Single Data Transfer Shifted
+		else if ((upper == 96 || upper == 104) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STR;
+		}
+		else if ((upper == 97 || upper == 105) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDR;
+		}
+		else if ((upper == 98 || upper == 106) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRT;
+		}
+		else if ((upper == 99 || upper == 107) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRT;
+		}
+		else if ((upper == 100 || upper == 108) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRB;
+		}
+		else if ((upper == 101 || upper == 109) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRB;
+		}
+		else if ((upper == 102 || upper == 110) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRBT;
+		}
+		else if ((upper == 103 || upper == 111) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRBT;
+		}
+		else if ((upper == 112 || upper == 114) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRP;
+		}
+		else if ((upper == 113 || upper == 115) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRP;
+		}
+		else if ((upper == 116 || upper == 118) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRBP;
+		}
+		else if ((upper == 117 || upper == 119) && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRBP;
+		}
+		else if (upper == 120 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRPU;
+		}
+		else if (upper == 121 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRPU;
+		}
+		else if (upper == 122 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRPUW;
+		}
+		else if (upper == 123 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRPUW;
+		}
+		else if (upper == 124 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRBPU;
+		}
+		else if (upper == 125 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRBPU;
+		}
+		else if (upper == 126 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::STRBPUW;
+		}
+		else if (upper == 127 && (lower % 2 == 0)) {
+			ArmFunc[i] = &x::LDRBPUW;
+		}
+		else if (upper >= 128 && upper <= 159) {
+			ArmFunc[i] = &x::BDT;
+		}
+		else if (upper >= 160 && upper <= 175) {
+			ArmFunc[i] = &x::Br;
+		}
+		else if (upper >= 176 && upper <= 191) {
+			ArmFunc[i] = &x::BrL;
+		}
+		else if (upper >= 240) {
+			ArmFunc[i] = &x::SWI;
 		}
 	}
 }
 
-void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC, bool & carry,int Rn, int Rd)
+
+void Arm::UndefinedInstruction(MMU& mmu)
 {
-	if ((insn >> 25) & 1) {
+	Dummy();
+}
+
+
+void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC, bool & carry,int Rn, int Rd, bool & S)
+{
+	////curInsnAsm = "DataProc";
+	if ((Ainsn >> 25) & 1) {
 		// Op2 Immediate
-		Op2 = bitrange(7, 0, insn);
-		uint16_t shiftAmnt = bitrange(11, 8, insn) * 2;
+		Op2 = bitrange(7, 0, Ainsn);
+		uint16_t shiftAmnt = bitrange(11, 8, Ainsn) * 2;
 		if (Op2 > 0 && (Op2 >> (shiftAmnt - 1) & 1)) {
 			carry = true;
 		}
@@ -5413,13 +6297,13 @@ void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC
 	}
 	else {
 		// Op2 Register
-		int Rm = WhatRegister(bitrange(3, 0, insn));
+		int Rm = WhatRegister(bitrange(3, 0, Ainsn));
 		Op2 = registers[Rm];
 		bool inc = false;
 
-		if ((insn >> 4) & 1) {
+		if ((Ainsn >> 4) & 1) {
 			// Shift by register
-			int Rs = WhatRegister(bitrange(11, 8, insn));
+			int Rs = WhatRegister(bitrange(11, 8, Ainsn));
 			uint8_t shiftAmnt = bitrange(7, 0, registers[Rs]);
 			if (Rm == 30) {
 				Op2 += 12;
@@ -5427,7 +6311,7 @@ void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC
 			if (Rn == 30) {
 				Op1 += 12;
 			}
-			switch (bitrange(6, 5, insn))
+			switch (bitrange(6, 5, Ainsn))
 			{
 			case 0:
 			{
@@ -5566,14 +6450,14 @@ void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC
 		else
 		{
 			// Shift by immediate
-			uint8_t shiftAmnt = bitrange(11, 7, insn);
+			uint8_t shiftAmnt = bitrange(11, 7, Ainsn);
 			if (Rm == 30) {
 				Op2 += 8;
 			}
 			if (Rn == 30) {
 				Op1 += 8;
 			}
-			switch (bitrange(6, 5, insn))
+			switch (bitrange(6, 5, Ainsn))
 			{
 			case 0:
 			{
@@ -5689,103 +6573,144 @@ void Arm::DataProc(uint32_t inst, uint32_t & Op1, uint32_t & Op2, bool & updateC
 			}
 		}
 	}
+	if (Rd == 30) {
+		//increment = false;
+		//Dummy();
+	}
+	if (S && Rd == 30) {
+		//increment = false;
+		updateC = false;
+		S = false;
+		switch (mode)
+		{
+		case Arm::Mode::User:
+			//
+			break;
+		case Arm::Mode::Fiq:
+			CPSR = SPSR_fiq;
+			break;
+		case Arm::Mode::Irq:
+			CPSR = SPSR_irq;
+			break;
+		case Arm::Mode::Supervisor:
+			CPSR = SPSR_svc;
+			break;
+		case Arm::Mode::Abort:
+			CPSR = SPSR_abt;
+			break;
+		case Arm::Mode::Undefined:
+			CPSR = SPSR_und;
+			break;
+		case Arm::Mode::System:
+			break;
+		}
+	}
 }
 
-void Arm::AND(uint32_t inst)
+void Arm::AND(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd,S);
 	registers[Rd] = Op1 & Op2;
 	if (S) {
 		SetFlags(registers[Rd], carry, false, false);
 	}
 }
 
-void Arm::EOR(uint32_t inst)
+void Arm::EOR(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd,S);
 	registers[Rd] = Op1 ^ Op2;
 	if (S) {
 		SetFlags(registers[Rd], carry, false, false);
 	}
 }
 
-void Arm::SUB(uint32_t inst)
+void Arm::SUB(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	//curInsnAsm = "SUB";
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd,S);
 	uint32_t og = registers[Rn];
 	if (updateC) {
 		SetBit(CPSR, 29);
 	}
 	registers[Rd] = Op1 - Op2;
+	//if (Rd == 30) {
+	//	increment = false;
+	//}
 	if (S) {
+		//SetBit(CPSR, 29);
 		SetFlagsSub(registers[Rd], (Op2 > Op1), (Overflow(Op1, Op2, registers[Rd], false)), true);
 	}
+	//curInsnAsm = "reset";
 }
 
-void Arm::RSB(uint32_t inst)
+void Arm::RSB(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd,S);
 	uint32_t og = registers[Rn];
-	SetBit(CPSR, 29);
+	//if (updateC) {
+	//	SetBit(CPSR, 29);
+	//}
 	registers[Rd] = Op2 - Op1;
 	if (S) {
+		SetBit(CPSR, 29);
 		SetFlagsSub(registers[Rd], (Op1 > Op2), (Overflow(Op2, Op1, registers[Rd], false)), true);
 	}
 }
 
-void Arm::ADD(uint32_t inst)
+void Arm::ADD(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	registers[Rd] = Op1 + Op2;
 	if (S) {
 		uint64_t tst = uint64_t(Op1) + uint64_t(Op2);
@@ -5797,19 +6722,19 @@ void Arm::ADD(uint32_t inst)
 	}
 }
 
-void Arm::ADC(uint32_t inst)
+void Arm::ADC(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	uint64_t tst = uint64_t(Op1) + uint64_t(Op2);
 	uint32_t og = registers[Rn];
 	registers[Rd] = Op1 + Op2;
@@ -5827,19 +6752,19 @@ void Arm::ADC(uint32_t inst)
 
 }
 
-void Arm::SBC(uint32_t inst)
+void Arm::SBC(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	uint32_t cv = 0;
 	if (!C) {
 		cv = 1;
@@ -5854,19 +6779,19 @@ void Arm::SBC(uint32_t inst)
 	}
 }
 
-void Arm::RSC(uint32_t inst)
+void Arm::RSC(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	uint32_t cv = 0;
 	if (!C) {
 		cv = 1;
@@ -5880,55 +6805,56 @@ void Arm::RSC(uint32_t inst)
 	}
 }
 
-void Arm::TST(uint32_t inst)
+void Arm::TST(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	if (S) {
 		SetFlags((Op1 & Op2), carry, false, false);
 	}
 }
 
-void Arm::TEQ(uint32_t inst)
+void Arm::TEQ(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	if (S) {
 		SetFlags((Op1 ^ Op2), carry, false, false);
 	}
 }
 
-void Arm::CMP(uint32_t inst)
+void Arm::CMP(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
+
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	if (S) {
 		uint32_t input = Op1;
 		uint32_t result = Op1 - Op2;
@@ -5937,19 +6863,19 @@ void Arm::CMP(uint32_t inst)
 	}
 }
 
-void Arm::CMN(uint32_t inst)
+void Arm::CMN(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	uint32_t input = Op1;
 	uint32_t result = Op1 + Op2;
 	if (S) {
@@ -5962,38 +6888,39 @@ void Arm::CMN(uint32_t inst)
 	}
 }
 
-void Arm::ORR(uint32_t inst)
+void Arm::ORR(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	registers[Rd] = Op1 | Op2;
 	if (S) {
 		SetFlags(registers[Rd], carry, false, false);
 	}
 }
 
-void Arm::MOV(uint32_t inst)
+void Arm::MOV(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	//curInsnAsm = "MOV";
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	registers[Rd] = Op2;
 	if (Rd == 30) {
 		increment = false;
@@ -6001,48 +6928,50 @@ void Arm::MOV(uint32_t inst)
 	if (S) {
 		SetFlags(registers[Rd], carry, false, false);
 	}
+	//curInsnAsm = "reset";
 }
 
-void Arm::BIC(uint32_t inst)
+void Arm::BIC(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	registers[Rd] = Op1 & ~(Op2);
 	if (S) {
 		SetFlags(registers[Rd], carry, false, false);
 	}
 }
-
-void Arm::MVN(uint32_t inst)
+			  
+void Arm::MVN(MMU& mmu)
 {
 	bool S = false;
-	if ((insn >> 20) & 1) {
+	if ((Ainsn >> 20) & 1) {
 		S = true;
 	}
-	int Rn = WhatRegister(bitrange(19, 16, insn));
-	int Rd = WhatRegister(bitrange(15, 12, insn));
+	int Rn = WhatRegister(bitrange(19, 16, Ainsn));
+	int Rd = WhatRegister(bitrange(15, 12, Ainsn));
 	uint32_t Op1 = registers[Rn];
 	uint32_t Op2;
 	bool updateC = true;
 	bool carry = false;
-	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd);
+	DataProc(Ainsn, Op1, Op2, updateC, carry, Rn, Rd, S);
 	registers[Rd] = ~(Op2);
 	if (S) {
 		SetFlags(registers[Rd], carry, false, false);
 	}
 }
 
-void Arm::MUL(uint32_t insn)
+void Arm::MUL(MMU& mmu)
 {
+	//curInsnAsm = "MUL";
 	uint32_t Rd = bitrange(19, 16, Ainsn);
 	uint32_t Rn = bitrange(15, 12, Ainsn);
 	uint32_t Rs = bitrange(11, 8,  Ainsn);
@@ -6064,8 +6993,9 @@ void Arm::MUL(uint32_t insn)
 	}
 }
 
-void Arm::MLA(uint32_t insn)
+void Arm::MLA(MMU& mmu)
 {
+	//curInsnAsm = "MLA";
 	uint32_t Rd = bitrange(19, 16, Ainsn);
 	uint32_t Rn = bitrange(15, 12, Ainsn);
 	uint32_t Rs = bitrange(11, 8, Ainsn);
@@ -6087,8 +7017,9 @@ void Arm::MLA(uint32_t insn)
 	}
 }
 
-void Arm::UMULL(uint32_t insn)
+void Arm::UMULL(MMU& mmu)
 {
+	//curInsnAsm = "UMULL";
 	uint32_t Rd = bitrange(19, 16, Ainsn);
 	uint32_t Rn = bitrange(15, 12, Ainsn);
 	uint32_t Rs = bitrange(11, 8, Ainsn);
@@ -6114,8 +7045,9 @@ void Arm::UMULL(uint32_t insn)
 	}
 }
 
-void Arm::UMLAL(uint32_t insn)
+void Arm::UMLAL(MMU& mmu)
 {
+	//curInsnAsm = "UMLAL";
 	uint32_t Rd = bitrange(19, 16, Ainsn);
 	uint32_t Rn = bitrange(15, 12, Ainsn);
 	uint32_t Rs = bitrange(11, 8, Ainsn);
@@ -6147,8 +7079,9 @@ void Arm::UMLAL(uint32_t insn)
 	}
 }
 
-void Arm::SMULL(uint32_t insn)
+void Arm::SMULL(MMU& mmu)
 {
+	//curInsnAsm = "SMULL";
 	uint32_t Rd = bitrange(19, 16, Ainsn);
 	uint32_t Rn = bitrange(15, 12, Ainsn);
 	uint32_t Rs = bitrange(11, 8, Ainsn);
@@ -6182,8 +7115,9 @@ void Arm::SMULL(uint32_t insn)
 	}
 }
 
-void Arm::SMLAL(uint32_t insn)
+void Arm::SMLAL(MMU& mmu)
 {
+	//curInsnAsm = "SMLAL";
 	uint32_t Rd = bitrange(19, 16, Ainsn);
 	uint32_t Rn = bitrange(15, 12, Ainsn);
 	uint32_t Rs = bitrange(11, 8, Ainsn);
@@ -6223,4 +7157,1185 @@ void Arm::SMLAL(uint32_t insn)
 	{
 		ClearBit(CPSR, 31);
 	}
+}
+
+void Arm::HDSDT(MMU & mmu)
+{
+	//curInsnAsm = "HDSDT";
+	uint32_t Rd = bitrange(15, 12, Ainsn);  // Source / destination register
+	uint32_t Rn = bitrange(19, 16, Ainsn);  // Base register
+	uint32_t address = registers[WhatRegister(Rn)];
+	uint32_t offset = 0;
+	bool P = false;
+	bool U = false;
+	bool I = false;
+	bool L = false;
+	bool WriteBack = true;
+
+	if ((Ainsn >> 23) & 1) {
+		U = true;
+	}
+	if ((Ainsn >> 22) & 1) {
+		I = true;
+		uint8_t upperOffset = bitrange(11, 8, Ainsn);
+		uint8_t lowerOffset = bitrange(3, 0, Ainsn);
+		offset = (upperOffset << 4) | lowerOffset;
+	}
+	else
+	{
+		uint32_t Rm = bitrange(3, 0, Ainsn);
+		offset = registers[WhatRegister(Rm)];
+	}
+	if ((Ainsn >> 24) & 1) {
+		P = true;
+		if (U) {
+			address += offset;
+		}
+		else
+		{
+			address -= offset;
+		}
+
+
+		if (!((Ainsn >> 21) & 1)) {
+			WriteBack = false;
+		}
+	}
+
+	if ((Ainsn >> 20) & 1) {
+		switch (bitrange(6, 5, Ainsn))
+		{
+		case 0x0:
+			// Reserved
+			//curInsnAsm = "NOP";
+			break;
+		case 0x1:
+		{
+			// Load unsigned halfword
+			if (Rd == Rn) {
+				WriteBack = false;
+			}
+			uint32_t rotAmnt = 0;
+			//rotAmnt = bitrange(1, 0, address);
+			//rotAmnt *= 8;
+			if (address % 2 != 0) {
+				address -= 1;
+			}
+
+			if (address == 0x2000048) {
+				Dummy();
+			}
+
+			uint32_t val = (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+			val = rotateRight(val, rotAmnt);
+			if (address >= 0xD000000) {
+				val = 1;
+			}
+			registers[WhatRegister(Rd)] = val;
+			break;
+		}
+		case 0x2:
+		{
+			// Load signed byte
+			if (Rd == Rn) {
+				WriteBack = false;
+			}
+			uint8_t val = mmu.MemoryRead(address);
+			if (val == 255) {
+				Dummy();
+			}
+			if ((val >> 7) & 1) {
+				registers[WhatRegister(Rd)] = (0xFFFFFF << 8) | val;
+			}
+			else
+			{
+				registers[WhatRegister(Rd)] = val;
+			}
+			break;
+		}
+		case 0x3:
+		{
+			// Load signed halfword
+			if (Rd == Rn) {
+				WriteBack = false;
+			}
+			uint32_t rotAmnt = 0;
+			//rotAmnt = bitrange(1, 0, address);
+			//rotAmnt *= 8;
+			if (address % 4 != 0) {
+				Dummy();
+			}
+			if (address % 2 != 0) {
+				address -= 1;
+			}
+
+			uint32_t val = (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+			if ((val >> 15) & 1) {
+				val = rotateRight(val, rotAmnt);
+				if (rotAmnt == 8) {
+					val = (0xFFFFFF << 8) | val;
+				}
+				else
+				{
+					val = (0xFFFF << 16) | val;
+				}
+				registers[WhatRegister(Rd)] = val;
+			}
+			else
+			{
+				registers[WhatRegister(Rd)] = val;
+			}
+			break;
+		}
+		}
+	}
+	else
+	{
+		switch (bitrange(6, 5, Ainsn))
+		{
+		case 0x0:
+		{
+			Dummy();
+		}
+		break;
+		case 0x1:
+			// Store halfword
+			if (address % 4 != 0) {
+				Dummy();
+			}
+			if (address % 2 != 0) {
+				address -= 1;
+			}
+			if (address == 0x60001e2) {
+				Dummy();
+			}
+			mmu.MemoryWrite(address, static_cast<uint16_t>(bitrange(15, 0, registers[WhatRegister(Rd)])));
+			break;
+		case 0x2:
+			// Load doubleword
+			if (address % 4 != 0) {
+				Dummy();
+			}
+			if (Rd == Rn) {
+				WriteBack = false;
+			}
+			registers[WhatRegister(Rd)] = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+			registers[WhatRegister(Rd) + 1] = (mmu.MemoryRead(address + 7) << 24) | (mmu.MemoryRead(address + 6) << 16) | (mmu.MemoryRead(address + 5) << 8) | mmu.MemoryRead(address + 4);
+			break;
+		case 0x3:
+			// Store doubleword
+			if (address % 4 != 0) {
+				Dummy();
+			}
+			//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, registers[WhatRegister(Rd)])));
+			//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, registers[WhatRegister(Rd)])));
+			//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, registers[WhatRegister(Rd)])));
+			//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, registers[WhatRegister(Rd)])));
+			//mmu.MemoryWrite(address + 4, static_cast<uint8_t>(bitrange(7, 0, registers[WhatRegister(Rd) + 1])));
+			//mmu.MemoryWrite(address + 5, static_cast<uint8_t>(bitrange(15, 8, registers[WhatRegister(Rd) + 1])));
+			//mmu.MemoryWrite(address + 6, static_cast<uint8_t>(bitrange(23, 16, registers[WhatRegister(Rd) + 1])));
+			//mmu.MemoryWrite(address + 7, static_cast<uint8_t>(bitrange(31, 24, registers[WhatRegister(Rd) + 1])));
+
+			mmu.MemoryWrite(address, registers[WhatRegister(Rd)]);
+			mmu.MemoryWrite(address + 4, registers[WhatRegister(Rd) + 1]);
+
+			break;
+		}
+	}
+	if (!P) {
+		if (U) {
+			address += offset;
+		}
+		else
+		{
+			address -= offset;
+		}
+	}
+	if (WriteBack) {
+		registers[WhatRegister(Rn)] = address;
+	}
+}
+
+void Arm::SDT(MMU& mmu, bool shift, bool pre, bool up, bool byte, bool write, bool ldr)
+{
+	//curInsnAsm = "SDT";
+
+	int Rd = bitrange(15, 12, Ainsn);  // Source / destination register
+	int Rn = bitrange(19, 16, Ainsn);  // Base register
+	int Rm = bitrange(3, 0, Ainsn);	  // Offset register
+	if (Rd == 15) {
+		Dummy();
+	}
+	uint32_t address = registers[WhatRegister(Rn)];
+	uint32_t offsetAmnt = 0;
+	bool I = false;
+	bool P = false;
+	bool U = false;
+	bool B = false;
+	bool WriteBack = true;
+
+	if ((Ainsn >> 25) & 1) {
+		I = true;
+	}
+	if ((Ainsn >> 24) & 1) {
+		P = true;
+		if (!((Ainsn >> 21) & 1)) {
+			WriteBack = false;
+		}
+	}
+	if ((Ainsn >> 23) & 1) {
+		U = true;
+	}
+	if ((Ainsn >> 22) & 1) {
+		B = true;
+	}
+
+
+
+	if (I) {
+		// Shifted register
+		if (Rd == 2) {
+			Dummy();
+		}
+		uint8_t shiftAmnt = bitrange(11, 7, Ainsn);
+		offsetAmnt = registers[WhatRegister(Rm)];
+		switch (bitrange(6, 5, Ainsn))
+		{
+		case 0:
+			offsetAmnt = offsetAmnt << shiftAmnt;
+			break;
+		case 1:
+			offsetAmnt = offsetAmnt >> shiftAmnt;
+			if (shiftAmnt == 0) {
+				offsetAmnt = 0;
+			}
+			break;
+		case 2:
+
+			if (shiftAmnt == 0) {
+				if (offsetAmnt >> 31 & 1) {
+					offsetAmnt = 0;
+					offsetAmnt = ~0;
+				}
+				else
+				{
+					offsetAmnt = 0;
+				}
+			}
+			else
+			{
+				offsetAmnt = arithmeticRight(offsetAmnt, shiftAmnt);
+			}
+			break;
+		case 3:
+			Dummy();
+			if (shiftAmnt == 0) {
+				offsetAmnt = offsetAmnt >> 1;
+				if ((CPSR >> 29) & 1) {
+					SetBit(offsetAmnt, 31);
+				}
+				else
+				{
+					ClearBit(offsetAmnt, 31);
+				}
+			}
+			offsetAmnt = rotateRight(offsetAmnt, shiftAmnt);
+			break;
+		}
+	}
+	else
+	{
+		offsetAmnt = bitrange(11, 0, Ainsn);
+	}
+
+	if (P) {
+		if (U) {
+			address += offsetAmnt;
+		}
+		else
+		{
+			address -= offsetAmnt;
+		}
+	}
+
+	if (address == 67109384) {
+		Dummy();
+	}
+
+	if ((Ainsn >> 20) & 1) {
+		// LDR
+		uint32_t rotAmnt = 0;
+		if (address % 4 != 0) {
+			rotAmnt = bitrange(1, 0, address);
+			rotAmnt *= 8;
+		}
+		if (Rd == Rn) {
+			WriteBack = false;
+		}
+		if (Rn == 15) {
+			address += 8;
+		}
+		if (B) {
+			registers[WhatRegister(Rd)] = mmu.MemoryRead(address);
+			//if (Rd == 15) {
+			//	registers[WhatRegister(Rd)] += 4;
+			//}
+			////curInsnAsm = "LDR{B}{T}";
+		}
+		else
+		{
+			if (registers[30] == 0x3000178) {
+				Dummy();
+			}
+
+			uint32_t val1 = mmu.MemoryRead(address);
+			uint32_t val2 = mmu.MemoryRead(address + 1);
+			uint32_t val3 = mmu.MemoryRead(address + 2);
+			uint32_t val4 = mmu.MemoryRead(address + 3);
+
+
+
+			AlignAddr(address);
+			uint32_t val = 0;
+			val = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+			//uint32_t val = mmu.MemoryReadWord(address);
+			registers[WhatRegister(Rd)] = rotateRight(val, rotAmnt);
+			if (Rd == 15) {
+				increment = false;
+			}
+			////curInsnAsm = "LDR{W}{T}";
+		}
+
+	}
+	else
+	{
+		// STR
+		uint32_t val = registers[WhatRegister(Rd)];
+		if (Rd == 15) {
+			val += 12;
+		}
+		if (B) {
+			mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, val)));
+			////curInsnAsm = "STR{B}{T}";
+		}
+		else
+		{
+			AlignAddr(address);
+			//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, val)));
+			//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
+			//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
+			//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
+			mmu.MemoryWrite(address, val);
+			////curInsnAsm = "STR{W}{T}";
+		}
+
+
+	}
+	if (!P) {
+		if (U) {
+			address += offsetAmnt;
+		}
+		else
+		{
+			address -= offsetAmnt;
+		}
+	}
+	if (WriteBack) {
+		registers[WhatRegister(Rn)] = address;
+	}
+
+
+
+	//if (loaded) {
+	//	int rd = bitrange(15, 12, Ainsn);  // source / destination register
+	//	int rn = bitrange(19, 16, Ainsn);  // base register
+	//	int rm = 0;	  // offset register
+	//	uint32_t address = registers[WhatRegister(rn)];
+	//	uint32_t offsetamnt = 0;
+
+	//	if (!pre) {
+	//		write = true;
+	//	}
+
+	//	if (shift) {
+	//		// shifted register
+	//		rm = bitrange(3, 0, Ainsn);
+	//		uint8_t shiftamnt = bitrange(11, 7, Ainsn);
+	//		offsetamnt = registers[WhatRegister(rm)];
+	//		switch (bitrange(6, 5, Ainsn))
+	//		{
+	//		case 0:
+	//			offsetamnt = offsetamnt << shiftamnt;
+	//			break;
+	//		case 1:
+	//			offsetamnt = offsetamnt >> shiftamnt;
+	//			if (shiftamnt == 0) {
+	//				offsetamnt = 0;
+	//			}
+	//			break;
+	//		case 2:
+
+	//			if (shiftamnt == 0) {
+	//				if (offsetamnt >> 31 & 1) {
+	//					offsetamnt = 0;
+	//					offsetamnt = ~0;
+	//				}
+	//				else
+	//				{
+	//					offsetamnt = 0;
+	//				}
+	//			}
+	//			else
+	//			{
+	//				offsetamnt = arithmeticRight(offsetamnt, shiftamnt);
+	//			}
+	//			break;
+	//		case 3:
+	//			if (shiftamnt == 0) {
+	//				offsetamnt = offsetamnt >> 1;
+	//				if ((CPSR >> 29) & 1) {
+	//					SetBit(offsetamnt, 31);
+	//				}
+	//				else
+	//				{
+	//					ClearBit(offsetamnt, 31);
+	//				}
+	//			}
+	//			offsetamnt = rotateRight(offsetamnt, shiftamnt);
+	//			break;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		offsetamnt = bitrange(11, 0, Ainsn);
+	//	}
+
+	//	if (pre) {
+	//		if (up) {
+	//			address += offsetamnt;
+	//		}
+	//		else
+	//		{
+	//			address -= offsetamnt;
+	//		}
+	//	}
+
+	//	if (ldr) {
+	//		// ldr
+	//		uint32_t rotamnt = 0;
+	//		if (address % 4 != 0) {
+	//			rotamnt = bitrange(1, 0, address);
+	//			rotamnt *= 8;
+	//		}
+	//		if (rd == rn) {
+	//			write = false;
+	//		}
+	//		if (rn == 15) {
+	//			address += 8;
+	//		}
+	//		if (byte) {
+	//			registers[WhatRegister(rd)] = mmu.MemoryRead(address);
+	//		}
+	//		else
+	//		{
+	//			uint32_t val1 = mmu.MemoryRead(address);
+	//			uint32_t val2 = mmu.MemoryRead(address + 1);
+	//			uint32_t val3 = mmu.MemoryRead(address + 2);
+	//			uint32_t val4 = mmu.MemoryRead(address + 3);
+
+	//			AlignAddr(address);
+	//			uint32_t val = 0;
+	//			val = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+	//			registers[WhatRegister(rd)] = rotateRight(val, rotamnt);
+	//			if (rd == 15) {
+	//				increment = false;
+	//			}
+	//		}
+
+	//	}
+	//	else
+	//	{
+	//		// str
+	//		uint32_t val = registers[WhatRegister(rd)];
+	//		if (rd == 15) {
+	//			val += 12;
+	//		}
+	//		if (byte) {
+	//			mmu.MemoryWrite(address, static_cast<uint8_t>(registers[WhatRegister(rd)]));
+	//			//curInsnAsm = "str{b}{t}";
+	//		}
+	//		else
+	//		{
+	//			AlignAddr(address);
+	//			mmu.MemoryWrite(address, val);
+	//			//curInsnAsm = "str{w}{t}";
+	//		}
+
+
+	//	}
+	//	if (!pre) {
+	//		if (up) {
+	//			address += offsetamnt;
+	//		}
+	//		else
+	//		{
+	//			address -= offsetamnt;
+	//		}
+	//	}
+	//	if (write) {
+	//		registers[WhatRegister(rn)] = address;
+	//	}
+	//}
+}
+
+void Arm::STRI(MMU& mmu)
+{
+	SDT(mmu, false, false, false, false, false, false);
+}
+
+void Arm::LDRI(MMU& mmu)
+{
+	SDT(mmu, false, false, false, false, false, true);
+}
+
+void Arm::STRTI(MMU & mmu)
+{
+	SDT(mmu, false, false, false, false, false, false);
+}
+
+void Arm::LDRTI(MMU & mmu)
+{
+	SDT(mmu, false, false, false, false, false, true);
+}
+
+void Arm::STRBI(MMU & mmu)
+{
+	SDT(mmu, false, false, false, true, false, false);
+}
+
+void Arm::LDRBI(MMU & mmu)
+{
+	SDT(mmu, false, false, false, true, false, true);
+}
+
+void Arm::STRBTI(MMU & mmu)
+{
+	SDT(mmu, false, false, false, true, false, false);
+}
+
+void Arm::LDRBTI(MMU & mmu)
+{
+	SDT(mmu, false, false, false, true, false, true);
+}
+
+void Arm::STRPI(MMU & mmu)
+{
+	SDT(mmu, false, true, false, false, false, false);
+}
+
+void Arm::LDRPI(MMU & mmu)
+{
+	SDT(mmu, false, true, false, false, false, true);
+}
+
+void Arm::STRBPI(MMU & mmu)
+{
+	SDT(mmu, false, true, false, true, false, false);
+}
+
+void Arm::LDRBPI(MMU & mmu)
+{
+	SDT(mmu, false, true, false, true, false, true);
+}
+
+void Arm::STRPUI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, false, false, false);
+}
+
+void Arm::LDRPUI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, false, false, true);
+}
+
+void Arm::STRPUWI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, false, true, false);
+}
+
+void Arm::LDRPUWI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, false, true, true);
+}
+
+void Arm::STRBPUI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, true, false, false);
+}
+
+void Arm::LDRBPUI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, true, false, true);
+}
+
+void Arm::STRBPUWI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, true, true, false);
+}
+
+void Arm::LDRBPUWI(MMU & mmu)
+{
+	SDT(mmu, false, true, true, true, true, true);
+}
+
+void Arm::STR(MMU & mmu)
+{
+	SDT(mmu, true, false, false, false, false, false);
+}
+
+void Arm::LDR(MMU & mmu)
+{
+	SDT(mmu, true, false, false, false, false, true);
+}
+
+void Arm::STRT(MMU & mmu)
+{
+	SDT(mmu, true, false, false, false, false, false);
+}
+
+void Arm::LDRT(MMU & mmu)
+{
+	SDT(mmu, true, false, false, false, false, true);
+}
+
+void Arm::STRB(MMU & mmu)
+{
+	SDT(mmu, true, false, false, true, false, false);
+}
+
+void Arm::LDRB(MMU & mmu)
+{
+	SDT(mmu, true, false, false, true, false, true);
+}
+
+void Arm::STRBT(MMU & mmu)
+{
+	SDT(mmu, true, false, false, true, false, false);
+}
+
+void Arm::LDRBT(MMU & mmu)
+{
+	SDT(mmu, true, false, false, true, false, true);
+}
+
+void Arm::STRP(MMU & mmu)
+{
+	SDT(mmu, true, true, false, false, false, false);
+}
+
+void Arm::LDRP(MMU & mmu)
+{
+	SDT(mmu, true, true, false, false, false, true);
+}
+
+void Arm::STRBP(MMU & mmu)
+{
+	SDT(mmu, true, true, false, true, false, false);
+}
+
+void Arm::LDRBP(MMU & mmu)
+{
+	SDT(mmu, true, true, false, true, false, true);
+}
+
+void Arm::STRPU(MMU & mmu)
+{
+	SDT(mmu, true, true, true, false, false, false);
+}
+
+void Arm::LDRPU(MMU & mmu)
+{
+	SDT(mmu, true, true, true, false, false, true);
+}
+
+void Arm::STRPUW(MMU & mmu)
+{
+	SDT(mmu, true, true, true, false, true, false);
+}
+
+void Arm::LDRPUW(MMU & mmu)
+{
+	SDT(mmu, true, true, true, false, true, true);
+}
+
+void Arm::STRBPU(MMU & mmu)
+{
+	SDT(mmu, true, true, true, true, false, false);
+}
+
+void Arm::LDRBPU(MMU & mmu)
+{
+	SDT(mmu, true, true, true, true, false, true);
+}
+
+void Arm::STRBPUW(MMU & mmu)
+{
+	SDT(mmu, true, true, true, true, true, false);
+}
+
+void Arm::LDRBPUW(MMU & mmu)
+{
+	SDT(mmu, true, true, true, true, true, true);
+}
+
+void Arm::BDT(MMU & mmu)
+{
+	if (Ainsn == 0x812C5BD) {
+		increment = false;
+	}
+	//curInsnAsm = "BDT";
+	int Rn = bitrange(19, 16, Ainsn);
+	uint32_t address = registers[WhatRegister(Rn)];
+	uint32_t oldAddr = address;
+	int Rlist = 0;
+	bool P = false;
+	bool U = false;
+	bool S = false;
+	bool W = false;
+	bool L = false;
+	bool stm = false;
+	if ((Ainsn >> 24) & 1) {
+		P = true;
+	}
+	if ((Ainsn >> 23) & 1) {
+		U = true;
+	}
+	if ((Ainsn >> 21) & 1) {
+		W = true;
+	}
+	if ((Ainsn >> 20) & 1) {
+		L = true;
+	}
+	bool found = false;
+	bool match = false;
+	int matchNum = -1;
+	int first = -1;
+	int last = -1;
+	bool pc = false;
+	for (int i = 0; i < 16; i++) {
+		if ((Ainsn >> i) & 1) {
+			Rlist += 1;
+			if (!found) {
+				first = i;
+				found = true;
+			}
+			last = i;
+			if (i == Rn) {
+				match = true;
+				matchNum = i;
+			}
+			if (i == 15) {
+				pc = true;
+			}
+			if (i == 14) {
+				Dummy();
+			}
+		}
+	}
+	if (L && pc) {
+		increment = false;
+	}
+	if ((Ainsn >> 22) & 1) {
+		S = true;
+		if (L && pc) {
+			Dummy();
+			switch (mode)
+
+			{
+			case Arm::Mode::User:
+				break;
+			case Arm::Mode::Fiq:
+				CPSR = SPSR_fiq;
+				break;
+			case Arm::Mode::Irq:
+				CPSR = SPSR_irq;
+				break;
+			case Arm::Mode::Supervisor:
+				CPSR = SPSR_svc;
+				break;
+			case Arm::Mode::Abort:
+				CPSR = SPSR_abt;
+				break;
+			case Arm::Mode::Undefined:
+				CPSR = SPSR_und;
+				break;
+			case Arm::Mode::System:
+				break;
+			}
+		}
+		else
+		{
+			mode = Mode::User;
+		}
+
+	}
+	bool empty = false;
+
+	if (Rlist == 0) {
+		empty = true;
+		W = false;
+		if (U) {
+			if (P) {
+				if (L) {
+					//LDMIB
+					registers[30] = mmu.MemoryReadWord(address);
+					increment = false;
+					registers[WhatRegister(Rn)] = address + 0x40;
+				}
+				else
+				{
+					//STMIB
+					mmu.MemoryWrite(address + 4, registers[30] + 12);
+					registers[WhatRegister(Rn)] = address + 0x40;
+				}
+			}
+			else
+			{
+				if (L) {
+					//LDMIA
+					registers[30] = mmu.MemoryReadWord(address);
+					increment = false;
+					registers[WhatRegister(Rn)] = address + 0x40;
+				}
+				else
+				{
+					//STMIA
+					mmu.MemoryWrite(address, registers[30] + 12);
+					registers[WhatRegister(Rn)] = address + 0x40;
+				}
+			}
+		}
+		else
+		{
+			if (P) {
+				if (L) {
+					//LDMDB
+					registers[30] = mmu.MemoryReadWord(address);
+					increment = false;
+					registers[WhatRegister(Rn)] = address - 0x40;
+				}
+				else
+				{
+					//STMDB
+					mmu.MemoryWrite(address - 0x40, registers[30] + 12);
+					registers[WhatRegister(Rn)] = address - 0x40;
+				}
+			}
+			else
+			{
+				if (L) {
+					//LDMDA
+					registers[30] = mmu.MemoryReadWord(address);
+					increment = false;
+					registers[WhatRegister(Rn)] = address - 0x40;
+				}
+				else
+				{
+					//STMDA
+					mmu.MemoryWrite(address - 0x3C, registers[30] + 12);
+					registers[WhatRegister(Rn)] = address - 0x40;
+				}
+			}
+		}
+	}
+	int index = -1;
+	bool ran = false;
+	uint32_t finishedAddr = 0;
+
+	for (int i = 0; i < 16; i++) {
+		if (((Ainsn >> i) & 1)) {
+			if (empty) {
+				i = 15;
+				empty = false;
+			}
+			uint32_t val = registers[WhatRegister(i)];
+			if (i == 15) {
+				val += 12;
+			}
+
+			index += 1;
+			if (P) {
+				if (U) {
+					if (!ran) {
+						finishedAddr = address + (Rlist * 4);
+						address = address + 4;
+						ran = true;
+					}
+					else
+					{
+						address += 4;
+					}
+
+					if (L) {
+						registers[WhatRegister(i)] = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+						//curInsnAsm = "LDM IB";
+					}
+					else
+					{
+						if (i == matchNum && matchNum != first) {
+							val = finishedAddr;
+						}
+						//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, val)));
+						//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
+						//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
+						//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
+						mmu.MemoryWrite(address, val);
+						//curInsnAsm = "STM IB";
+						stm = true;
+					}
+				}
+				else
+				{
+					if (!ran) {
+						finishedAddr = address - ((Rlist) * 4);
+						address = finishedAddr;
+						ran = true;
+					}
+					else
+					{
+						address += 4;
+					}
+					if (L) {
+						registers[WhatRegister(i)] = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+						//curInsnAsm = "LDM DB";
+					}
+					else
+					{
+						if (i == matchNum && matchNum != first) {
+							val = finishedAddr;
+						}
+						//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, val)));
+						//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
+						//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
+						//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
+						mmu.MemoryWrite(address, val);
+						//curInsnAsm = "STM DB";
+						stm = true;
+					}
+				}
+			}
+			else
+			{
+				if (U)
+				{
+					if (!ran) {
+						finishedAddr = address + (Rlist * 4);
+						address = address;
+						ran = true;
+					}
+					else
+					{
+						address += 4;
+					}
+					if (L) {
+						registers[WhatRegister(i)] = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+						//curInsnAsm = "LDM IA";
+					}
+					else
+					{
+						if (i == matchNum && matchNum != first) {
+							val = finishedAddr;
+						}
+						//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, val)));
+						//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
+						//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
+						//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
+						mmu.MemoryWrite(address, val);
+						//curInsnAsm = "STM IA";
+						stm = true;
+					}
+				}
+				else
+				{
+					if (!ran) {
+						finishedAddr = (address - ((Rlist) * 4));
+						address = finishedAddr + 4;
+
+
+						ran = true;
+					}
+					else
+					{
+						address += 4;
+					}
+					if (L) {
+						//uint32_t val = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+						//if (i == 15) {
+						//	val = val & 0xFFFFFFFC;
+						//}
+						registers[WhatRegister(i)] = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+						//curInsnAsm = "LDM DA";
+						if (registers[30] % 2 != 0) {
+							std::cerr << "\nInvalid PC\nRegister 30: " << registers[30] << std::endl;
+						}
+					}
+					else
+					{
+						if (i == matchNum && matchNum != first) {
+							val = finishedAddr;
+						}
+						//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, val)));
+						//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, val)));
+						//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, val)));
+						//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, val)));
+						mmu.MemoryWrite(address, val);
+						//curInsnAsm = "STM DA";
+						stm = true;
+					}
+				}
+			}
+		}
+	}
+	if (match) {
+		if (Rn == first) {
+			if (!stm) {
+				W = false;
+			}
+		}
+		else if (Rn == last) {
+			if (!stm) {
+				W = false;
+			}
+		}
+		else
+		{
+			if (!stm) {
+				W = false;
+			}
+		}
+	}
+
+	if (W) {
+		registers[WhatRegister(Rn)] = finishedAddr;
+	}
+}
+
+void Arm::SWP(MMU & mmu)
+{
+	//curInsnAsm = "SWP";
+	int Rm = bitrange(3, 0, Ainsn);
+	int Rn = bitrange(19, 16, Ainsn);
+	int Rd = bitrange(15, 12, Ainsn);
+
+	uint32_t address = registers[WhatRegister(Rn)];
+
+	uint32_t rotAmnt = 0;
+	rotAmnt = bitrange(1, 0, address);
+	rotAmnt *= 8;
+	AlignAddr(address);
+	uint32_t val = (mmu.MemoryRead(address + 3) << 24) | (mmu.MemoryRead(address + 2) << 16) | (mmu.MemoryRead(address + 1) << 8) | mmu.MemoryRead(address);
+	val = rotateRight(val, rotAmnt);
+	if (Rd == Rm) {
+		uint32_t temp = registers[WhatRegister(Rd)];
+		registers[WhatRegister(Rd)] = val;
+		//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, temp)));
+		//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, temp)));
+		//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, temp)));
+		//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, temp)));
+		mmu.MemoryWrite(address, temp);
+	}
+	else
+	{
+		//mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, registers[WhatRegister(Rm)])));
+		//mmu.MemoryWrite(address + 1, static_cast<uint8_t>(bitrange(15, 8, registers[WhatRegister(Rm)])));
+		//mmu.MemoryWrite(address + 2, static_cast<uint8_t>(bitrange(23, 16, registers[WhatRegister(Rm)])));
+		//mmu.MemoryWrite(address + 3, static_cast<uint8_t>(bitrange(31, 24, registers[WhatRegister(Rm)])));
+		mmu.MemoryWrite(address, registers[WhatRegister(Rm)]);
+		registers[WhatRegister(Rd)] = val;
+	}
+	
+}
+
+void Arm::SWPB(MMU & mmu)
+{
+	//curInsnAsm = "SWPB";
+	int Rm = bitrange(3, 0, Ainsn);		  //Source address
+	int Rn = bitrange(19, 16, Ainsn);	  //Base address
+	int Rd = bitrange(15, 12, Ainsn);	  //Register
+
+	uint32_t address = registers[WhatRegister(Rn)];
+
+	if (Rd == Rm) {
+		uint8_t temp = bitrange(7,0, registers[WhatRegister(Rd)]);
+		registers[WhatRegister(Rd)] = mmu.MemoryRead(address);
+		mmu.MemoryWrite(address, temp);
+	}
+	else
+	{
+		uint8_t val = mmu.MemoryRead(address);
+		mmu.MemoryWrite(address, static_cast<uint8_t>(bitrange(7, 0, registers[WhatRegister(Rm)])));
+		registers[WhatRegister(Rd)] = val;
+	}
+}
+
+void Arm::Br(MMU & mmu)
+{
+	//curInsnAsm = "B";
+	int32_t offset = bitrange(23, 0, Ainsn);
+
+	offset <<= 2;
+	if (offset & 0x2000000) {
+		offset |= 0xFC000000;
+	}
+
+	registers[30] = registers[30] + offset + 8;
+	increment = false;
+}
+
+void Arm::BrL(MMU & mmu)
+{
+	//curInsnAsm = "BL";
+	int32_t offset = bitrange(23, 0, Ainsn);
+	offset <<= 2;
+	if (offset & 0x2000000) {
+		offset |= 0xFC000000;
+	}
+
+	registers[WhatRegister(14)] = registers[30] + 4;
+	registers[30] = registers[30] + offset + 8;
+	increment = false;
+}
+
+void Arm::BrX(MMU & mmu)
+{
+	//curInsnAsm = "BX";
+	int x = bitrange(3, 0, Ainsn);
+	uint32_t Rn = registers[WhatRegister(x)];
+	if (x == 15) {
+		Rn += 4;
+	}
+	if (Rn % 2 != 0) {
+		Rn -= 1;
+		SetBit(CPSR, 5);
+	}
+	else
+	{
+		ClearBit(CPSR, 5);
+	}
+	
+	registers[30] = Rn;
+	increment = false;
+}
+
+void Arm::SWI(MMU & mmu)
+{
+	//curInsnAsm = "SWI";
+	//SWI
+	registers[25] = registers[30] + 4;
+	SPSR_svc = CPSR;
+	uint32_t mask = 0x000000FF;
+	CPSR &= ~mask;
+	CPSR |= 0b10011;
+	registers[30] = 0x8;
+	increment = false;
 }

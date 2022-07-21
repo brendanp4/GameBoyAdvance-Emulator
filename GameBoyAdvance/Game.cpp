@@ -18,7 +18,7 @@ void Game::Update(Graphics & gfx)
 	count++;
 
 	if (count >= 10 && start) {
-
+	
 		for (int i = 0; i < 157696; i++)
 		{
 			arm.Cycle(ppu, mmu);
@@ -27,6 +27,10 @@ void Game::Update(Graphics & gfx)
 			}
 		}
 	}
+	//arm.Cycle(ppu, mmu);
+	//if (count % 1232 == 0) {
+	//	ppu.Update(mmu, display);
+	//}
 	kbd.ProcessInput();
 	ProcessInput();
 }
@@ -105,6 +109,7 @@ void Game::ProcessInput()
 	else
 	{
 		SetBit(mmu.KEYINPUT, 2);
+		//ClearBit(mmu.KEYINPUT, 2);
 	}
 	if (kbd.key_T) {
 		ClearBit(mmu.KEYINPUT, 3);

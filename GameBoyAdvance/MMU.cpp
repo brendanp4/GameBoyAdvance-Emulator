@@ -1,5 +1,6 @@
 #include "MMU.h"
 #include <fstream>
+#include <iostream>
 
 
 
@@ -24,17 +25,6 @@ uint32_t MMU::bitrange(int msb, int lsb, uint32_t insn)
 
 void MMU::MemoryWrite(uint32_t addr, uint8_t val)
 {
-
-	if (addr == 0x6010A90) {
-		int h = 1;
-	}
-	if (addr == 0x6010E44) {
-		int h = 1;
-	}
-	if (addr >= 0x4000060 && addr <= 0x40000A8) {
-		int y = 0;
-	}
-	uint8_t yaga = val;
 	if (addr >= 0x00000000 && addr <= 0x00003FFF) {
 	}
 	if (addr >= 0x02000000 && addr <= 0x02FFFFFF) {
@@ -54,6 +44,11 @@ void MMU::MemoryWrite(uint32_t addr, uint8_t val)
 	if (addr >= 0x04000000 && addr <= 0x040003FE) {
 		// IO Registers
 		// LCD IO:
+		//if (addr != 0x4000301 && (addr < 0x4000060 || addr > 0x40000A8)) {
+		//	std::cout << "8 bit memory write\nAddress: ";
+		//	std::cout << addr;
+		//	std::cout << "\n\n";
+		//}
 		int ya = 0;
 		if (addr >= 0x4000000 && addr < 0x4000002) {
 			//2    R / W  DISPCNT   LCD Control
@@ -164,11 +159,30 @@ void MMU::MemoryWrite(uint32_t addr, uint8_t val)
 		}
 		if (addr >= 0x4000048 && addr < 0x400004A) {
 			//2    R / W  WININ     Inside of Window 0 and 1
-			WININ = val;
+			if (addr == 0x4000048) {
+				WININ >> 8;
+				WININ << 8;
+				WININ |= val;
+			}
+			if (addr == 0x4000049) {
+				WININ << 8;
+				WININ >> 8;
+				WININ |= (static_cast<uint16_t>(val) << 8);
+			}
+			//WININ = val;
 		}
 		if (addr >= 0x400004A && addr < 0x400004C) {
 			//2    R / W  WINOUT    Inside of OBJ Window & Outside of Windows 
-			WINOUT = val;
+			if (addr == 0x4000048) {
+				WINOUT >> 8;
+				WINOUT << 8;
+				WINOUT |= val;
+			}
+			if (addr == 0x4000049) {
+				WINOUT << 8;
+				WINOUT >> 8;
+				WINOUT |= (static_cast<uint16_t>(val) << 8);
+			}
 		}
 		if (addr >= 0x400004C && addr < 0x400004E) {
 			//2    W    MOSAIC    Mosaic Size }
@@ -241,6 +255,7 @@ void MMU::MemoryWrite(uint32_t addr, uint8_t val)
 		Index %= 0x400;
 
 		BPRAM[Index] = val;
+		BPRAM[Index + 1] = val;
 	}
 	if (addr >= 0x06000000 && addr < 0x07000000) {
 		// VRAM
@@ -258,9 +273,13 @@ void MMU::MemoryWrite(uint32_t addr, uint8_t val)
 		if (Index >= 0x18000) {
 			Index -= 0x8000;
 		}
+		if (addr >= 0x06000000 && addr <= 0x0600FFFF) {
+			VRAM[Index] = val;
+			VRAM[Index + 1] = val;
+		}
 
 
-		VRAM[Index] = val;
+		//VRAM[Index] = val;
 	}
 	if (addr >= 0x07000000 && addr < 0x08000000) {
 		// OAM - OBJ Attributes
@@ -290,22 +309,6 @@ void MMU::MemoryWrite(uint32_t addr, uint8_t val)
 
 void MMU::MemoryWrite(uint32_t addr, uint16_t val)
 {
-	if (addr == 0x6010A90) {
-		int h = 1;
-	}
-	if (addr == 0x6010E44) {
-		int h = 1;
-	}
-	int y = 0;
-	if (addr == 0x60019A4) {
-		int h = 1;
-	}
-	if (addr == 0x600F0C0) {
-		int h = 1;
-	}
-	if (addr >= 0x4000060 && addr <= 0x40000A8) {
-		int y = 0;
-	}
 	if (addr >= 0x00000000 && addr <= 0x00003FFF) {
 	}
 	if (addr >= 0x02000000 && addr <= 0x02FFFFFF) {
@@ -659,11 +662,16 @@ void MMU::MemoryWrite(uint32_t addr, uint16_t val)
 		// Game Pak Rom - FlashRom
 		uint32_t Index = addr - 0x08000000;
 		Index %= 0x2000000;
-		if (Index < Rom.size()) {
-
-		}
-		else
-		{
+		//if (Index < Rom.size()) {
+		//
+		//}
+		//else
+		//{
+		//	EEPROM[Index] = bitrange(7, 0, val);
+		//	EEPROM[Index + 1] = bitrange(15, 8, val);
+		//}
+		if (addr >= 0x0D000000) {
+			Index = addr - 0x0D000000;
 			EEPROM[Index] = bitrange(7, 0, val);
 			EEPROM[Index + 1] = bitrange(15, 8, val);
 		}
@@ -679,22 +687,7 @@ void MMU::MemoryWrite(uint32_t addr, uint16_t val)
 
 void MMU::MemoryWrite(uint32_t addr, uint32_t val)
 {
-	if (addr == 0x6010A90) {
-		int h = 1;
-	}
-	if (addr == 0x6010E44) {
-		int h = 1;
-	}
-	if (addr == 0x60019A4) {
-		int h = 1;
-	}
-	if (addr >= 0x4000060 && addr <= 0x40000A8) {
-		int y = 0;
-	}
 	if (addr >= 0x00000000 && addr <= 0x00003FFF) {
-	}
-	if (addr == 0x600F0C0) {
-		int h = 1;
 	}
 	if (addr >= 0x02000000 && addr <= 0x02FFFFFF) {
 		// On board WRAM
@@ -1421,9 +1414,10 @@ uint8_t MMU::MemoryRead(uint32_t addr)
 			return HALTCNT;
 		}
 	}
-	else if (addr >= 0x05000000 && addr <= 0x050003FF) {
+	else if (addr >= 0x05000000 && addr < 0x06000000) {
 		// BG/OBJ Palette Ram
 		uint32_t Index = addr - 0x05000000;
+		Index %= 0x400;
 		return BPRAM[Index];
 	}
 	else if (addr >= 0x06000000 && addr < 0x07000000) {
@@ -1436,7 +1430,7 @@ uint8_t MMU::MemoryRead(uint32_t addr)
 
 		return VRAM[Index];
 	}
-	else if (addr >= 0x07000000 && addr <= 0x070003FF) {
+	else if (addr >= 0x07000000 && addr < 0x08000000) {
 		// OAM - OBJ Attributes
 		uint32_t Index = addr - 0x07000000;
 		Index %= 0x400;
@@ -1449,9 +1443,13 @@ uint8_t MMU::MemoryRead(uint32_t addr)
 		if (Index < Rom.size()) {
 			return Rom[Index];
 		}
-		else
-		{
-			Index -= Rom.size();
+		//else
+		//{
+		//	Index -= Rom.size();
+		//	return EEPROM[Index];
+		//}
+		if (addr >= 0x0D000000) {
+			Index = addr - 0x0D000000;
 			return EEPROM[Index];
 		}
 	}
@@ -1470,7 +1468,6 @@ uint8_t MMU::MemoryRead(uint32_t addr)
 
 uint32_t MMU::MemoryReadWord(uint32_t addr)
 {
-	int ya = 1;
 	if (addr >= 0x00000000 && addr <= 0x00003FFF) {
 		return Bios[addr + 3] << 24 | Bios[addr + 2] << 16 | Bios[addr + 1] << 8 | Bios[addr];
 	}
@@ -1709,9 +1706,10 @@ uint32_t MMU::MemoryReadWord(uint32_t addr)
 			return IME;
 		}
 	}
-	else if (addr >= 0x05000000 && addr <= 0x050003FF) {
+	else if (addr >= 0x05000000 && addr < 0x06000000) {
 		// BG/OBJ Palette Ram
 		uint32_t Index = addr - 0x05000000;
+		Index %= 0x400;
 		return BPRAM[Index + 3] << 24 | BPRAM[Index + 2] << 16 | BPRAM[Index + 1] << 8 | BPRAM[Index];
 	}
 	else if (addr >= 0x06000000 && addr < 0x07000000) {
@@ -1725,7 +1723,7 @@ uint32_t MMU::MemoryReadWord(uint32_t addr)
 
 		return VRAM[Index + 3] << 24 | VRAM[Index + 2] << 16 | VRAM[Index + 1] << 8 | VRAM[Index];
 	}
-	else if (addr >= 0x07000000 && addr <= 0x070003FF) {
+	else if (addr >= 0x07000000 && addr < 0x08000000) {
 		// OAM - OBJ Attributes
 		uint32_t Index = addr - 0x07000000;
 		Index %= 0x400;
@@ -1740,10 +1738,14 @@ uint32_t MMU::MemoryReadWord(uint32_t addr)
 		if (Index < Rom.size()) {
 			return Rom[Index + 3] << 24 | Rom[Index + 2] << 16 | Rom[Index + 1] << 8 | Rom[Index];
 		}
-		else
-		{
+		if (addr >= 0x0D000000) {
+			Index = addr - 0x0D000000;
 			return EEPROM[Index + 3] << 24 | EEPROM[Index + 2] << 16 | EEPROM[Index + 1] << 8 | EEPROM[Index];
 		}
+		//else
+		//{
+		//	return EEPROM[Index + 3] << 24 | EEPROM[Index + 2] << 16 | EEPROM[Index + 1] << 8 | EEPROM[Index];
+		//}
 	}
 	else if (addr >= 0x0E000000 && addr <= 0x0E00FFFF) {
 		// Game Pak SRAM

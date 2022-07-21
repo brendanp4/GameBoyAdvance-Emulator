@@ -16,12 +16,15 @@ public:
 	int frame = 0;
 
 	Arm();
+	void WriteToLogA(int nCount);
+	void WriteToLogB(int nCount);
 	void Load(MMU& mmu);
 	void Cycle(PPU& ppu, MMU& mmu);
 	void AlignAddr(uint32_t& addr);
 	uint32_t bitrange(int msb, int lsb, uint16_t insn);
 	uint32_t bitrange(int msb, int lsb, uint32_t insn);
 	uint32_t bitrange(int msb, int lsb, uint64_t insn);
+	void DecodeArm(MMU& mmu);
 	void Decode(uint32_t insn, PPU& ppu, MMU& mmu);
 	void SetMode();
 	void SetBit(uint32_t& val, int bit);
@@ -56,6 +59,34 @@ private:
 	void CallInterrupt();
 	bool Condition(uint32_t insn);
 
+
+	//Helper Functions
+	uint16_t ReverseBits(uint16_t n) {
+		uint16_t rev = 0;
+
+		// traversing bits of 'n' from the right
+		for (int i = 0; i < 16; i++) {
+			// bitwise left shift
+			// 'rev' by 1
+			rev <<= 1;
+
+			// if current bit is '1'
+			if (n & 1 == 1)
+				rev ^= 1;
+
+			// bitwise right shift
+			// 'n' by 1
+			n >>= 1;
+		}
+
+		// required number
+		return rev;
+	}
+
+
+	//EEPROM
+	int eeprom_address = 0;
+	int epWrites = 0;
 
 	//Timers
 	uint16_t Timer0 = 0;
@@ -115,6 +146,11 @@ private:
 	bool needs_reload3 = false;
 	int dma3cycle = 0;
 
+	int total_reads = 0;
+	int ldr_reads = 0;
+	int eeWrites = 0;
+	int dmas = 0;
+
 	bool irqd = false;
 
 	uint32_t rotateRight(uint32_t num, uint16_t rotation)
@@ -150,64 +186,132 @@ private:
 	//IRQ
 	bool bExecute = true;
 
-
-	// Lookup table
-	typedef void(*ArmInstr)();
-	ArmInstr ArmFunc[0xFFF];
-	void GenerateTable();
-
-	// Data Processing Functions
-	void DataProc(uint32_t inst, uint32_t& op1, uint32_t& op2,bool& update, bool& c,int Rn, int Rd);
-	void AND(uint32_t inst);
-	void EOR(uint32_t inst);
-	void SUB(uint32_t inst);
-	void RSB(uint32_t inst);
-	void ADD(uint32_t inst);
-	void ADC(uint32_t inst);
-	void SBC(uint32_t inst);
-	void RSC(uint32_t inst);
-	void TST(uint32_t inst);
-	void TEQ(uint32_t inst);
-	void CMP(uint32_t inst);
-	void CMN(uint32_t inst);
-	void ORR(uint32_t inst);
-	void MOV(uint32_t inst);
-	void BIC(uint32_t inst);
-	void MVN(uint32_t inst);
+	int numm = 0;
 	
 
-	// Multiply Functions
-	void MUL(uint32_t insn);
-	void MLA(uint32_t insn);
-	void UMULL(uint32_t insn);
-	void UMLAL(uint32_t insn);
-	void SMULL(uint32_t insn);
-	void SMLAL(uint32_t insn);
+	//Handler functions
+	void UndefinedInstruction(MMU& mmu);
+	void HandleBranch();
+	void HandleDataProc();
+	void HandleMultiply();
+	void HandlePSR();
+	void HandleSingleDataTransfer();
+	void HandleMultiDataTransfer();
+	void HandleBlockDataTransfer();
+	void HandleSwap();
 
-	// Memory Functions
-	void LDR(uint32_t insn);
-	//void LDR(uint32_t insn);
-	//void LDR(uint32_t insn);
-	//void LDR(uint32_t insn);
-	//void LDR(uint32_t insn);
-	void LDM(uint32_t insn);
-	void STM(uint32_t insn);
-	void BlockTransfer(uint32_t insn, MMU& mmu);
-	void SWP(uint32_t insn);
-	void PLD(uint32_t insn);
+
+	// Data Processing Functions
+	void DataProc(uint32_t inst, uint32_t& op1, uint32_t& op2,bool& update, bool& c,int Rn, int Rd, bool& S);
+	void AND(MMU& mmu);
+	void EOR(MMU& mmu);
+	void SUB(MMU& mmu);
+	void RSB(MMU& mmu);
+	void ADD(MMU& mmu);
+	void ADC(MMU& mmu);
+	void SBC(MMU& mmu);
+	void RSC(MMU& mmu);
+	void TST(MMU& mmu);
+	void TEQ(MMU& mmu);
+	void CMP(MMU& mmu);
+	void CMN(MMU& mmu);
+	void ORR(MMU& mmu);
+	void MOV(MMU& mmu);
+	void BIC(MMU& mmu);
+	void MVN(MMU& mmu);
+	
+	//ArmFunc[0] = AND;
+
+	// Multiply Functions
+	void MUL(MMU& mmu);
+	void MLA(MMU& mmu);
+	void UMULL(MMU& mmu);
+	void UMLAL(MMU& mmu);
+	void SMULL(MMU& mmu);
+	void SMLAL(MMU& mmu);
+
+	//Halfword, Doubleword, Signed Data Transfer
+	void HDSDT(MMU& mmu);
+
+	//Single Data Transfer
+	void SDT(MMU& mmu, bool shift, bool pre, bool up, bool byte, bool write, bool ldr);
+
+		//Immediate
+	void STRI	 (MMU& mmu);
+	void LDRI	 (MMU& mmu);
+	void STRTI	 (MMU& mmu);
+	void LDRTI	 (MMU& mmu);
+	void STRBI	 (MMU& mmu);
+	void LDRBI	 (MMU& mmu);
+	void STRBTI	 (MMU& mmu);
+	void LDRBTI	 (MMU& mmu);
+
+	void STRPI	 (MMU& mmu);
+	void LDRPI	 (MMU& mmu);
+	void STRBPI	 (MMU& mmu);
+	void LDRBPI	 (MMU& mmu);
+	void STRPUI	 (MMU& mmu);
+	void LDRPUI	 (MMU& mmu);
+	void STRPUWI (MMU& mmu);
+	void LDRPUWI (MMU& mmu);
+	void STRBPUI (MMU& mmu);
+	void LDRBPUI (MMU& mmu);
+	void STRBPUWI(MMU& mmu);
+	void LDRBPUWI(MMU& mmu);
+
+		//Shifted
+	void STR(MMU& mmu);
+	void LDR(MMU& mmu);
+	void STRT(MMU& mmu);
+	void LDRT(MMU& mmu);
+	void STRB(MMU& mmu);
+	void LDRB(MMU& mmu);
+	void STRBT(MMU& mmu);
+	void LDRBT(MMU& mmu);
+
+	void STRP(MMU& mmu);
+	void LDRP(MMU& mmu);
+	void STRBP(MMU& mmu);
+	void LDRBP(MMU& mmu);
+	void STRPU(MMU& mmu);
+	void LDRPU(MMU& mmu);
+
+	void STRPUW(MMU& mmu);
+	void LDRPUW(MMU& mmu);
+	void STRBPU(MMU& mmu);
+	void LDRBPU(MMU& mmu);
+	void STRBPUW(MMU& mmu);
+	void LDRBPUW(MMU& mmu);
+
+	//Block data transfer
+	void BDT(MMU& mmu);
+
+	//Swap
+	void SWP(MMU& mmu);
+	void SWPB(MMU& mmu);
 
 	// Jumps,Calls,Other
+	void Br(MMU& mmu);
+	void BrL(MMU& mmu);
+	void BrX(MMU& mmu);
+	void SWI(MMU& mmu);
 	void B(uint32_t insn);
 	void BL(uint32_t insn);
-	void BX(uint32_t insn);
-	void BLX(uint32_t insn);
-	//void BLX(uint32_t insn);
-	void MRS(uint32_t insn);
-	void MSR(uint32_t insn);
-	void SWI(uint32_t insn);
-	void BKPT(uint32_t insn);
+	void BX();
+	void BLX();
+	void MRS(MMU& mmu);
+	void MRSR(MMU& mmu);
+	void MSR(MMU& mmu);
+	void MSRR(MMU& mmu);
+	void MSRI(MMU& mmu);
+	void MSRRI(MMU& mmu);
 
-
+	// Lookup table
+	typedef void(Arm::*armIns)(MMU& mmu);
+	armIns ArmFunc[0xFFF];
+	void GenerateTable(MMU& mmu);
+	bool loaded = false;
+	bool happens = false;
 	std::string curInsnAsm = "NULL";
 
 

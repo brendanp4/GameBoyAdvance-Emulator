@@ -1,11 +1,14 @@
 #include "PPU.h"
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 PPU::PPU()
 {
 	bgBuffer.resize(38400, 0);
 	tileMap.resize(2048, 0);
 	bg0ScanlineBuffer.resize(240, 0);
+	Sprite.resize(128, std::vector<uint16_t>(128, 0));
 	bg0TileBuffer.resize(512, std::vector<uint16_t>(512, 0));
 	bg1TileBuffer.resize(512, std::vector<uint16_t>(512, 0));
 	bg2TileBuffer.resize(512, std::vector<uint16_t>(512, 0));
@@ -69,7 +72,7 @@ void PPU::Update(MMU& mmu, Display& display)
 				//	int r = bitrange(4, 0, bg0ScanlineBuffer[i]) * 8;
 				//	display.SetPixel(pos, r,g,b);
 				//}
-
+				backdrop_color = mmu.BPRAM[1] << 8 | mmu.BPRAM[0];
 				if (!bg0 && !bg1 && !bg2 && !bg3) {
 					//Set backdrop color
 					for (int i = 0; i < 240; i++) {
@@ -82,10 +85,10 @@ void PPU::Update(MMU& mmu, Display& display)
 						display.SetPixel(pos, color);
 					}
 				}
-				else
-				{
+				//else
+				//{
 					DrawScanline(display, mmu);
-				}
+				//}
 			}
 
 			//readBg0Cnt(mmu);
@@ -121,8 +124,10 @@ void PPU::Update(MMU& mmu, Display& display)
 		}
 	}
 	if (obj) {
-		for (int i = 96; i >= 0; i--) {
-			LoadSprites(mmu, display, i, 0);
+		for (int i = 95; i >= 0; i--) {
+			
+				LoadSprites(mmu, display, i, 0);
+			
 		}
 		
 	}
@@ -157,6 +162,10 @@ void PPU::DetermineColor(Display& display)
 		//}
 
 		SetPixel(display, frame[0].pLoc, frame[0].color);
+		if (frame[0].color >> 15 & 1) {
+			//uint16_t color = mmu.BPRAM[1] << 8 | mmu.BPRAM[0];
+			display.SetPixel(frame[0].pLoc, backdrop_color);
+		}
 
 		//uint16_t bdColor = mmu.BPRAM[1] << 8 | mmu.BPRAM[0];
 
@@ -1097,26 +1106,22 @@ void PPU::LoadBgBuffer1(MMU& mmu)
 
 void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 {
-	if (spriteNum == 6) {
-		int h = 0;
-	}
 	int start = spriteNum * 8;
 	uint16_t attr0 = mmu.OBJA[start + 1] << 8 | mmu.OBJA[start];
 	uint16_t attr1 = mmu.OBJA[start + 3] << 8 | mmu.OBJA[start + 2];
 	uint16_t attr2 = mmu.OBJA[start + 5] << 8 | mmu.OBJA[start + 4];
 	int priority = bitrange(11, 10, attr2);
-	//uint16_t attr3 = mmu.OBJA[start + 7] << 8 | mmu.OBJA[start + 6];
-
+	int pallete = bitrange(15, 12, attr2);
 	if ( (bitrange(9, 8, attr0) != 0b10) ) {
 
 		//Affine sprite settings
 		bool affine = false;
 		bool dSize = false;
 		int affineParam = 0;
-		int pa = 0;
-		int pb = 0;
-		int pc = 0;
-		int pd = 0;
+		int16_t pa = 0;
+		int16_t pb = 0;
+		int16_t pc = 0;
+		int16_t pd = 0;
 		if (attr0 >> 8 & 1) {
 			affine = true;
 			if (attr0 >> 9 & 1) {
@@ -1155,7 +1160,7 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 				vFlip = true;
 			}
 		}
-		int pallete = bitrange(15, 12, attr2);
+		
 		
 		int width = 0;
 		int height = 0;
@@ -1248,453 +1253,695 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 
 		//Sprite.resize(width, std::vector<uint16_t>(height, 0));
 
-		int size = (width / 8) * (height / 8);
+		bool okay = false;
+		if (yCoord + height >= 160) {
+			okay = true;
+		}
+		int TID = (bitrange(9, 0, attr2) * 32) + 0x10000;
+		if ((curScanLine >= yCoord && curScanLine <= yCoord + height) || okay || affine) {
 
-		if (vram2d) {
-			for (int i = 0; i < size; i++) {
-				int g = 0;
-				if (colorMode) {
-					for (int j = 0; j < 64; j++) {
+			if (dSize) {
+				width *= 2;
+				height *= 2;
+			}
+			int size = (width / 8) * (height / 8);
+			incr++;
+			
+			int tileStart = (TID + 0) + (0 * 32);
+			int tileEnd = (TID + 32) + (size * 32);
+			if (true) {
+				int hwidth = width / 2;   // half-width of object screen canvas				
+				int hheight = height / 2;   // half-height of object screen canvas
+				if(vram2d){
+					for (int j = 0; j < height; j++) {
+						for (int i = 0; i < width; i++)
+						{
+							if (colorMode) {
+								//Initial tile ID
 
-						int offset = i / (width / 8);
+								bool valid = true;
 
-						int offsetN = i % (width / 8);
+								int indexX = i;
+								int indexY = j;
 
-						int tileNum = bitrange(9, 0, attr2);
+								if (affine) {
+									int pX = ((pa*(i - hwidth)) + (pb * (j - hheight))) >> 8;    // get x texture coordinate
+									int pY = ((pc*(i - hwidth)) + (pd * (j - hheight))) >> 8;    // get y texture coordinate
+									pX += 32;
+									pY += 32;
+									if (pX < 0 || pX > 64) {
+										valid = false;
+									}
+									if (pY < 0 || pY > 64) {
+										valid = false;
+									}
+									indexX = pX;
+									indexY = pY;
+								}
 
-						tileNum += (offsetN * 2) + (offset * 32);
-
-						int tileIndex = (tileNum * 32) + 0x10000;
-						int index = (tileIndex + j);
-
-						//int tileIndex = (tileNum * 32) + 0x10000;
-						//int index = (tileIndex + j) + (i * 64) + (offset * 512);
-
-						uint16_t colorIndex = (mmu.VRAM[index] * 2) + 0x200;
-						uint16_t colorLeft = mmu.BPRAM[colorIndex + 1] << 8 | mmu.BPRAM[colorIndex];
-
-
-						int hOffset = (i % (width / 8)) * 8;						//Column
-						int vOffset = (i / (width / 8)) * 8;						//Row
-						int ye = (j) % 8;											//Horizontal position inside tile
-						int ya = (j) / 8;											//Vertical position inside tile
-
+								int index = TID;
 
 
-						if (dSize) {
+								int tileNum = 0;
+								int tileOffset = 0;
 
+								
+								//Tile number:
+								int tile = (indexX / 8) * 2;
+								tile += ((indexY / 8) * 32);
+								//tile *= 2;
+								tile *= 32;
+								
+								index += tile;
+
+								int id = index;
+
+								
+
+								//Inside of tile coordinates
+								tileOffset += ((indexY % 8) * 8) + (indexX % 8);
+								index += tileOffset;
+								uint16_t colorIndex = (mmu.VRAM[index] * 2) + 0x200;
+								uint16_t color = mmu.BPRAM[colorIndex + 1] << 8 | mmu.BPRAM[colorIndex];
+								if (index < tileStart ) {
+									color = 0x8000;
+								}
+								if (colorIndex == 512) {
+									SetBit(color, 15);
+								}
+								Sprite[i][j] = color;
+							}
+							else
+							{
+								//Initial tile ID
+								int index = TID;
+
+								bool valid = true;
+
+								int indexX = i;
+								int indexY = j;
+
+								if (affine) {
+									int pX = ((pa*(i - hwidth)) + (pb * (j - hheight))) >> 8;    // get x texture coordinate
+									int pY = ((pc*(i - hwidth)) + (pd * (j - hheight))) >> 8;    // get y texture coordinate
+									pX += 32;
+									pY += 32;
+									if (pX < 0 || pX > 64) {
+										valid = false;
+									}
+									if (pY < 0 || pY > 64) {
+										valid = false;
+									}
+									indexX = pX;
+									indexY = pY;
+								}
+
+								int tileNum = 0;
+								int tileOffset = 0;
+
+								//Tile number:
+								int tile = (indexX / 8);
+								tile += ((indexY / 8) * 32);
+								tile *= 32;
+								index += tile;
+
+								int id = index;
+
+								//Tile 2d offset
+								//int offset = (tileNum / 32) / (width / 8);
+								//int offsetN = (tileNum / 32) % (width / 8);
+
+
+								//Inside of tile coordinates
+								tileOffset += ((indexY % 8) * 4) + (((indexX % 8) >> 1));
+								int fineX = (indexX % 8);
+								index += tileOffset;
+
+								//if (incr == 200) {
+								//	std::ofstream oFile;
+								//	oFile.open("fine1.txt", std::ios::out | std::ios::app);
+								//	oFile << i << " " << j << "\n";
+								//	oFile << index << "\n";
+								//	oFile.close();
+								//}
+
+								uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
+								uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
+
+								uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
+								uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];
+
+
+								if (colorLeftIndex % 32 == 0) {
+									SetBit(colorLeft, 15);
+								}
+								if (i % 2 == 0) {
+									Sprite[i][j] = colorLeft;
+								}
+
+								if (colorRightIndex % 32 == 0) {
+									SetBit(colorRight, 15);
+								}
+								if (i % 2 != 0) {
+									Sprite[i][j] = colorRight;
+								}
+							}
 						}
-
-						int xPos = hOffset + ye;
-						int yPos = vOffset + ya;
-
-
-						//if (dSize) {
-						//	xPos += (width / 2) / 2;
-						//	yPos += (height / 2) / 2;
-						//}
-
-						if (colorIndex == 512) {
-							SetBit(colorLeft, 15);
-						}
-						//else
-						//{
-						//	if (affine) {
-						//		int y = 0;
-						//	}
-						//	Sprite[xPos][yPos] = colorLeft;
-						//}
-						Sprite[xPos][yPos] = colorLeft;
-
 					}
 				}
 				else
 				{
+					//int hello = 0;
+					for (int j = 0; j < height; j++)
+					{
+					//int j = curScanLine - yCoord;
+					//if (j >= 160) {
+					//	j -= 256;
+					//}
+					//if (j >= 0) {
+						for (int i = 0; i < width; i++)
+						{
+							if (colorMode) {
+								bool valid = true;
+
+								int indexX = i;
+								int indexY = j;
+
+								if (affine) {
+									int pX = ((pa*(i - hwidth)) + (pb * (j - hheight))) >> 8;    // get x texture coordinate
+									int pY = ((pc*(i - hwidth)) + (pd * (j - hheight))) >> 8;    // get y texture coordinate
+									pX += 32;
+									pY += 32;
+									if (pX < 0 || pX > 64) {
+										valid = false;
+									}
+									if (pY < 0 || pY > 64) {
+										valid = false;
+									}
+									indexX = pX;
+									indexY = pY;
+								}
+								int index = TID;
+								int tileNum = 0;
+								int tileOffset = 0;
+								tileNum += (indexY / 8) * 32 * 8;
+								tileNum += (indexX / 8) * 32;
+								tileOffset += ((indexY % 8)) + (indexX % 8);
+								index += tileOffset + tileNum;
+								uint16_t colorIndex = (mmu.VRAM[index] * 2) + 0x200;
+								uint16_t color = mmu.BPRAM[colorIndex + 1] << 8 | mmu.BPRAM[colorIndex];
+								if (colorIndex == 512) {
+									SetBit(color, 15);
+								}
+								Sprite[i][j] = color;
+							}
+							else
+							{
+
+
+								bool valid = true;
+
+								int indexX = i;
+								int indexY = j;
+
+								if (affine) {
+									int pX = ((pa*(i - hwidth)) + (pb * (j - hheight))) >> 8;    // get x texture coordinate
+									int pY = ((pc*(i - hwidth)) + (pd * (j - hheight))) >> 8;    // get y texture coordinate
+									pX += 32;
+									pY += 32;
+									if (pX < 0 || pX > 64) {
+										valid = false;
+									}
+									if (pY < 0 || pY > 64) {
+										valid = false;
+									}
+									indexX = pX;
+									indexY = pY;
+								}
+
+								int index = TID;
+								int tileNum = 0;
+								int tileOffset = 0;
+								tileNum += (indexY / 8) * 32 * 8;
+								tileNum += (indexX / 8) * 32;
+								tileOffset += ((indexY % 8) * 4) + (((indexX % 8) >> 1));
+								int fineX = (indexX % 8);
+								index += tileOffset + tileNum;
+
+								uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
+								uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
+
+								uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
+								uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];
+
+								if (index < tileStart || index > tileEnd || !valid) {
+									colorLeft = 0x8000;
+									colorRight = 0x8000;
+								}
+
+								if (colorLeftIndex % 32 == 0) {
+									SetBit(colorLeft, 15);
+								}
+								if (fineX % 2 == 0) {
+									Sprite[i][j] = colorLeft;
+								}
+								if (colorRightIndex % 32 == 0) {
+									SetBit(colorRight, 15);
+								}
+								if (fineX % 2 != 0) {
+									Sprite[i][j] = colorRight;
+								}
+							}
+						}
+					//}
+					}
+				}
+			}
+			else if (vram2d) {
+				for (int i = 0; i < size; i++) {
+					int g = 0;
+					if (colorMode) {
+						for (int j = 0; j < 64; j++) {
+
+							int offset = i / (width / 8);
+
+							int offsetN = i % (width / 8);
+
+							int tileNum = bitrange(9, 0, attr2);
+
+							tileNum += (offsetN * 2) + (offset * 32);
+
+							int tileIndex = (tileNum * 32) + 0x10000;
+							int index = (tileIndex + j);
+
+							//int tileIndex = (tileNum * 32) + 0x10000;
+							//int index = (tileIndex + j) + (i * 64) + (offset * 512);
+
+							uint16_t colorIndex = (mmu.VRAM[index] * 2) + 0x200;
+							uint16_t colorLeft = mmu.BPRAM[colorIndex + 1] << 8 | mmu.BPRAM[colorIndex];
+
+
+							int hOffset = (i % (width / 8)) * 8;						//Column
+							int vOffset = (i / (width / 8)) * 8;						//Row
+							int ye = (j) % 8;											//Horizontal position inside tile
+							int ya = (j) / 8;											//Vertical position inside tile
+
+
+
+							
+
+							int xPos = hOffset + ye;
+							int yPos = vOffset + ya;
+
+
+							
+
+							if (colorIndex == 512) {
+								SetBit(colorLeft, 15);
+							}
+							//else
+							//{
+							//	if (affine) {
+							//		int y = 0;
+							//	}
+							//	Sprite[xPos][yPos] = colorLeft;
+							//}
+							Sprite[xPos][yPos] = colorLeft;
+
+						}
+					}
+					else
+					{
+						for (int j = 0; j < 32; j++) {
+							if (i == 8) {
+								int j = 0;
+							}
+							int offset = i / (width / 8);
+
+							int offsetN = i % (width / 8);
+
+							int tileNum = bitrange(9, 0, attr2);
+
+							tileNum += (offsetN)+(offset * 32);
+
+							int tileIndex = (tileNum * 32) + 0x10000;
+							int index = (tileIndex + j);
+
+							//if (i == 0 && incr == 200) {
+							//	std::ofstream oFile;
+							//	oFile.open("fine2.txt", std::ios::out | std::ios::app);
+							//	oFile << index << "\n";
+							//	oFile.close();
+							//}
+
+							uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
+							uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
+
+							uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
+							uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];
+
+
+							// Top left corner coordinates of tile:
+							int hOffset = ((i % (width / 8)) * 8);						//Column
+							int vOffset = ((i / (width / 8)) * 8);						//Row
+							int ye = (j * 2) % 8;										//Horizontal position inside tile
+							int ya = (j * 2) / 8;										//Vertical position inside tile
+
+
+							int xPos = hOffset + ye;
+							int yPos = vOffset + ya;
+
+							if (colorLeftIndex % 32 == 0) {
+								SetBit(colorLeft, 15);
+							}
+							Sprite[xPos][yPos] = colorLeft;
+
+							//if (incr == 200) {
+							//	std::ofstream oFile;
+							//	oFile.open("fine2.txt", std::ios::out | std::ios::app);
+							//	oFile << xPos << " " << yPos << "\n";
+							//	oFile << index << "\n";
+							//	oFile.close();
+							//}
+
+							ye = ((j * 2) + 1) % 8;
+							ya = ((j * 2) + 1) / 8;
+
+							xPos = hOffset + ye;
+							yPos = vOffset + ya;
+
+							if (colorRightIndex % 32 == 0) {
+								SetBit(colorRight, 15);
+							}
+							Sprite[xPos][yPos] = colorRight;
+
+							//if (incr == 200) {
+							//	std::ofstream oFile;
+							//	oFile.open("fine2.txt", std::ios::out | std::ios::app);
+							//	oFile << xPos << " " << yPos << "\n";
+							//	oFile << index << "\n";
+							//	oFile.close();
+							//}
+
+
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < size; i++)
+				{
+					if (colorMode) {
+						int y = 0;
+						std::cout << "Color Mode\n";
+						
+					}
 					for (int j = 0; j < 32; j++) {
-						int offset = i / (width / 8);
-
-						int offsetN = i % (width / 8);
-
-						int tileNum = bitrange(9, 0, attr2);
-
-						tileNum += (offsetN)+(offset * 32);
-
-						int tileIndex = (tileNum * 32) + 0x10000;
-						int index = (tileIndex + j);
-
+						int tileIndex = (bitrange(9, 0, attr2) * 32) + 0x10000;
+						int index = (tileIndex + j) + (i * 32);
+						
 						uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
 						uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
 
 						uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
 						uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];
 
-
 						// Top left corner coordinates of tile:
 						int hOffset = ((i % (width / 8)) * 8);						//Column
-						int vOffset = ((i / (width / 8)) * 8);						//Row
+						int vOffset = ((i / (height / 8)) * 8);						//Row
 						int ye = (j * 2) % 8;										//Horizontal position inside tile
 						int ya = (j * 2) / 8;										//Vertical position inside tile
-
-
 						int xPos = hOffset + ye;
 						int yPos = vOffset + ya;
-
 						if (colorLeftIndex % 32 == 0) {
 							SetBit(colorLeft, 15);
 						}
 						Sprite[xPos][yPos] = colorLeft;
 
-
 						ye = ((j * 2) + 1) % 8;
 						ya = ((j * 2) + 1) / 8;
-
 						xPos = hOffset + ye;
 						yPos = vOffset + ya;
-
 						if (colorRightIndex % 32 == 0) {
 							SetBit(colorRight, 15);
 						}
 						Sprite[xPos][yPos] = colorRight;
 
+					}
 
-
-
+				}
+			}
+			//yaga = true;
+			if (hFlip && !affine) {
+				for (int j = 0; j < height; j++) {
+					std::vector<uint16_t> temp;
+					temp.resize(width, 0);
+					int index = 0;
+					for (int i = width - 1; i > -1; i--)
+					{
+						temp[index] = Sprite[i][j];
+						index++;
+					}
+					for (int i = 0; i < width; i++) {
+						Sprite[i][j] = temp[i];
 					}
 				}
 			}
-		}
-		else
-		{
-			for (int i = 0; i < size; i++)
-			{
-				int sdahds = 0;
-				for (int j = 0; j < 32; j++) {
-					int tileIndex = (bitrange(9, 0, attr2) * 32) + 0x10000;
-					int index = (tileIndex + j) + (i * 32);
-
-					uint16_t colorLeftIndex = (bitrange(3, 0, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
-					uint16_t colorRightIndex = (bitrange(7, 4, mmu.VRAM[index]) * 2) + 0x200 + (pallete * 32);
-
-					uint16_t colorLeft = mmu.BPRAM[colorLeftIndex + 1] << 8 | mmu.BPRAM[colorLeftIndex];
-					uint16_t colorRight = mmu.BPRAM[colorRightIndex + 1] << 8 | mmu.BPRAM[colorRightIndex];
-
-					// Top left corner coordinates of tile:
-					int hOffset = ((i % (width / 8)) * 8);						//Column
-					int vOffset = ((i / (height / 8)) * 8);						//Row
-					int ye = (j * 2) % 8;										//Horizontal position inside tile
-					int ya = (j * 2) / 8;										//Vertical position inside tile
-
-					//if (vFlip) {
-					//	ya = abs(ya - 7);
-					//}
-					//if (hFlip) {
-					//	ye = abs(ye - 7);
-					//}
-
-					if (colorLeftIndex % 32 == 0) {
-						SetBit(colorLeft, 15);
+			if (vFlip && !affine) {
+				for (int j = 0; j < width; j++) {
+					std::vector<uint16_t> temp;
+					temp.resize(height, 0);
+					int index = 0;
+					for (int i = height - 1; i > -1; i--)
+					{
+						temp[index] = Sprite[j][i];
+						index++;
 					}
-					Sprite[hOffset + ye][vOffset + ya] = colorLeft;
-					ye = ((j * 2) + 1) % 8;
-					ya = ((j * 2) + 1) / 8;
-
-					//if (vFlip) {
-					//	ya = abs(ya - 7);
-					//}
-					//if (hFlip) {
-					//	ye = abs(ye - 7);
-					//}
-
-					if (colorRightIndex % 32 == 0) {
-						SetBit(colorRight, 15);
+					for (int i = 0; i < height; i++) {
+						Sprite[j][i] = temp[i];
 					}
-					Sprite[hOffset + ye][vOffset + ya] = colorRight;
-
-				}
-
-			}
-		}
-
-		if (hFlip) {
-			for (int j = 0; j < height; j++) {
-				std::vector<uint16_t> temp;
-				temp.resize(width, 0);
-				int index = 0;
-				for (int i = width - 1; i > -1; i--)
-				{
-					temp[index] = Sprite[i][j];
-					index++;
-				}
-				for (int i = 0; i < width; i++) {
-					Sprite[i][j] = temp[i];
 				}
 			}
-		}
-		if (vFlip) {
-			for (int j = 0; j < width; j++) {
-				std::vector<uint16_t> temp;
-				temp.resize(height, 0);
-				int index = 0;
-				for (int i = height - 1; i > -1; i--)
-				{
-					temp[index] = Sprite[j][i];
-					index++;
-				}
-				for (int i = 0; i < height; i++) {
-					Sprite[j][i] = temp[i];
-				}
+
+			//Draw Sprite
+			bool half = false;
+
+			int wStart = 0;
+			int hStart = 0;
+			int wEnd = width;
+			int hEnd = height;
+			if (half) {
+				wStart = (width / 2) * -1;
+				hStart = (height / 2) * -1;
+				wEnd = (width / 2);
+				hEnd = (width / 2);
+			
+				
 			}
-		}
 
-		//Draw Sprite
-
-		//if (affine) {
-		//	int offsetX = 0;
-		//	int offsetY = 0;
-		//	//if (dSize) {
-		//	//	offsetX = (width / 2) / 2;
-		//	//	offsetY = (height / 2) / 2;
-		//	//}
-		//	//for (int i = 0; i < width; i++) {
-		//	//	for (int j = 0; j < height; j++) {
-		//	//		if (Sprite[i + offsetX][j + offsetY]) {
-		//	//			int b = bitrange(14, 10, Sprite[i + offsetX][j + offsetY]) * 8;
-		//	//			int g = bitrange(9, 5, Sprite[i + offsetX][j + offsetY]) * 8;
-		//	//			int r = bitrange(4, 0, Sprite[i + offsetX][j + offsetY]) * 8;
-		//	//			int pos = (((j + yCoord) % 160) * 240) + ((i + xCoord) % 240);
-		//	//			display.SetPixel(pos, r, g, b);
-		//	//		}
-		//	//	}
-		//	//}
-		//}
-		//else
-		//{
-		//for (int i = 0; i < width; i++) {
-		//	for (int j = 0; j < height; j++) {
-		//		int pos = (((j + yCoord) % 160) * 240) + ((i + xCoord) % 240);
-		//		if (Sprite[i][j] != 0) {
-		//			int b = bitrange(14, 10, Sprite[i][j]) * 8;
-		//			int g = bitrange(9, 5, Sprite[i][j]) * 8;
-		//			int r = bitrange(4, 0, Sprite[i][j]) * 8;
-		//			
-		//			display.SetPixel(pos, r, g, b);
-		//		}
-		//		else
-		//		{
-		//			display.SetPixel(pos, 0, 0, 0);
-		//		}
-		//	}
-		//}
-		//}
-
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
+			for (int j = hStart; j < hEnd; j++) {
+				for (int i = wStart; i < wEnd; i++) {
 
 
 
-				bool show = true;
+					bool show = true;
 
-				int xPos = xCoord + i;
-				if (xPos >= 240) {
-					xPos -= 512;
-				}
+					int xPos = xCoord + i;
+					
 
-				int yPos = yCoord + j;
-				if (yPos >= 160) {
-					yPos -= 256;
-				}
+					int yPos = yCoord + j;
+					
+					//xPos += 
 
-				//int pos = (((yPos)) * 240) + ((xPos));
+					if (xPos < 0 || yPos < 0) {
+						show = false;
+					}
 
-				if (xPos < 0 || yPos < 0) {
-					show = false;
-				}
+					if (half) {
+						if (spriteNum == 0 && i == -32 && j == -32) {
+							int y = 0;
+						}
+						//pb = 0x40;
+						//int tX = i * -1;
+						//int tY = j * -1;
+						int pX = ((pa*i + pb * j) >> 8);
+						int pY = ((pc*i + pd * j) >> 8);
+						
+						
+						xPos -= i;
+						yPos -= j;
+						
+						pX += (width / 2);
+						pY += (height / 2);
+						xPos += pX;
+						yPos += pY;
+					
+						if (dSize) {
+							xPos += (width / 2);
+							yPos += (height / 2);
+						}
+						if (half) {
+							i += (width / 2);
+							j += (height / 2);
+						}
+					
+					}
+					
+					if (xPos >= 240) {
+						xPos -= 512;
+					}
+					if (yPos >= 160) {
+						yPos -= 256;
+					}
 
-				//int pos = (((j + yCoord) % 160) * 240) + ((i + xCoord) % 240);
-				int pos = (yPos * 240) + (xPos);
+					//int pos = (((j + yCoord) % 160) * 240) + ((i + xCoord) % 240);
+					int pos = (yPos * 240) + (xPos);
 
+					
 
-				if (pos > 0 && pos < 38400 && show) {
-
-					//if (((j + yCoord) % 160) == curScanLine) {
-					if ((yPos) == curScanLine) {
-						if (!((Sprite[i][j] >> 15) & 1)) {
-							if (priority <= bgPriorities[xPos]) {
-								switch (objMode)
-								{
-								case 0:
-									// Normal
-									switch (colorEffect)
-									{
-									case 0:
-										// No Effect
-										display.SetPixel(pos, Sprite[i][j]);
-										break;
-									case 1:
-										// Alpha Blending
-										display.SetPixel(pos, Sprite[i][j]);
-										break;
-									case 2:
-										// Fade to white
-										if ((BLDCNT >> 4) & 1) {
-											uint16_t colorA = Sprite[i][j];
-											int redA = (colorA & 0x1F);
-											int greenA = ((colorA & 0x3E0) >> 5);
-											int blueA = ((colorA & 0x7C00) >> 10);
-
-											float EVZ = 16 - EVY;
-											redA = float(redA) *     (EVZ / 16);
-											greenA = float(greenA) * (EVZ / 16);
-											blueA = float(blueA) *   (EVZ / 16);
-
-
-											int redB = 31;
-											int greenB = 31;
-											int blueB = 31;
-
-											redB = float(redB) *     (float(EVY) / 16);
-											greenB = float(greenB) * (float(EVY) / 16);
-											blueB = float(blueB) *   (float(EVY) / 16);
-
-											int red = redA + redB;
-											red *= 8;
-											if (red > 255) {
-												red = 255;
-											}
-											int green = greenA + greenB;
-											green *= 8;
-											if (green > 255) {
-												green = 255;
-											}
-											int blue = blueA + blueB;
-											blue *= 8;
-											if (blue > 255) {
-												blue = 255;
-											}
-											SetPixel(display, pos, red, green, blue);
-										}
-										else
+					if (pos > 0 && pos < 38400 && show) {
+						//if (((j + yCoord) % 160) == curScanLine) {
+						if ((xPos >= xCoord && xPos < xCoord + width && yPos >= yCoord && yPos < yCoord + height) || dSize) {
+							if (((yPos) == curScanLine)) {
+								if (!((Sprite[i][j] >> 15) & 1)) {
+									if (priority <= bgPriorities[xPos]) {
+										switch (objMode)
 										{
-											display.SetPixel(pos, Sprite[i][j]);
-										}
-										break;
-									case 3:
-										// Fade to black
-										if ((BLDCNT >> 4) & 1) {
-											uint16_t colorA = Sprite[i][j];
-											int redA = (colorA & 0x1F);
-											int greenA = ((colorA & 0x3E0) >> 5);
-											int blueA = ((colorA & 0x7C00) >> 10);
+										case 0:
+											// Normal
+											switch (colorEffect)
+											{
+											case 0:
+												// No Effect
+												display.SetPixel(pos, Sprite[i][j]);
+												//SetPixel(display, pos, i * 2, j * 2, ((Sprite[i][j] & 0x7C00) >> 10));
+												break;
+											case 1:
+												// Alpha Blending
+												display.SetPixel(pos, Sprite[i][j]);
+												break;
+											case 2:
+												// Fade to white
+												if ((BLDCNT >> 4) & 1) {
+													uint16_t colorA = Sprite[i][j];
+													int redA = (colorA & 0x1F);
+													int greenA = ((colorA & 0x3E0) >> 5);
+													int blueA = ((colorA & 0x7C00) >> 10);
 
-											float EVZ = 16 - EVY;
-											redA = float(redA) *     (EVZ / 16);
-											greenA = float(greenA) * (EVZ / 16);
-											blueA = float(blueA) *   (EVZ / 16);
+													float EVZ = 16 - EVY;
+													redA = float(redA) *     (EVZ / 16);
+													greenA = float(greenA) * (EVZ / 16);
+													blueA = float(blueA) *   (EVZ / 16);
 
 
-											int redB = 0;
-											int greenB = 0;
-											int blueB = 0;
+													int redB = 31;
+													int greenB = 31;
+													int blueB = 31;
 
-											redB = float(redB) *     (float(EVY) / 16);
-											greenB = float(greenB) * (float(EVY) / 16);
-											blueB = float(blueB) *   (float(EVY) / 16);
+													redB = float(redB) *     (float(EVY) / 16);
+													greenB = float(greenB) * (float(EVY) / 16);
+													blueB = float(blueB) *   (float(EVY) / 16);
 
-											int red = redA + redB;
-											red *= 8;
-											if (red > 255) {
-												red = 255;
+													int red = redA + redB;
+													red *= 8;
+													if (red > 255) {
+														red = 255;
+													}
+													int green = greenA + greenB;
+													green *= 8;
+													if (green > 255) {
+														green = 255;
+													}
+													int blue = blueA + blueB;
+													blue *= 8;
+													if (blue > 255) {
+														blue = 255;
+													}
+													SetPixel(display, pos, red, green, blue);
+												}
+												else
+												{
+													display.SetPixel(pos, Sprite[i][j]);
+												}
+												break;
+											case 3:
+												// Fade to black
+												if ((BLDCNT >> 4) & 1) {
+													uint16_t colorA = Sprite[i][j];
+													int redA = (colorA & 0x1F);
+													int greenA = ((colorA & 0x3E0) >> 5);
+													int blueA = ((colorA & 0x7C00) >> 10);
+
+													float EVZ = 16 - EVY;
+													redA = float(redA) *     (EVZ / 16);
+													greenA = float(greenA) * (EVZ / 16);
+													blueA = float(blueA) *   (EVZ / 16);
+
+
+													int redB = 0;
+													int greenB = 0;
+													int blueB = 0;
+
+													redB = float(redB) *     (float(EVY) / 16);
+													greenB = float(greenB) * (float(EVY) / 16);
+													blueB = float(blueB) *   (float(EVY) / 16);
+
+													int red = redA + redB;
+													red *= 8;
+													if (red > 255) {
+														red = 255;
+													}
+													int green = greenA + greenB;
+													green *= 8;
+													if (green > 255) {
+														green = 255;
+													}
+													int blue = blueA + blueB;
+													blue *= 8;
+													if (blue > 255) {
+														blue = 255;
+													}
+													SetPixel(display, pos, red, green, blue);
+												}
+												break;
+											default:
+												display.SetPixel(pos, Sprite[i][j]);
+												break;
 											}
-											int green = greenA + greenB;
-											green *= 8;
-											if (green > 255) {
-												green = 255;
-											}
-											int blue = blueA + blueB;
-											blue *= 8;
-											if (blue > 255) {
-												blue = 255;
-											}
-											SetPixel(display, pos, red, green, blue);
-										}
-										break;
-									default:
-										display.SetPixel(pos, Sprite[i][j]);
-										break;
-									}
-									//display.SetPixel(pos, Sprite[i][j]);
-									break;
-								case 1:
-									// Semi-transparent (Alpha blend)
-								{
-									if (bgColorsB[xCoord + i]) {
-										uint16_t colorA = Sprite[i][j];
-										uint16_t colorB = bgColorsB[xCoord + i];
-										int redA = (colorA & 0x1F);
-										int greenA = ((colorA & 0x3E0) >> 5);
-										int blueA = ((colorA & 0x7C00) >> 10);
-										if (EVA == 0) {
-											redA = greenA = blueA = 0;
-										}
-										else
+											//display.SetPixel(pos, Sprite[i][j]);
+											break;
+										case 1:
+											// Semi-transparent (Alpha blend)
 										{
-											redA = float(redA) * (float(EVA) / 16);
-											greenA = float(greenA) * (float(EVA) / 16);
-											blueA = float(blueA) * (float(EVA) / 16);
-										}
-
-										int redB = (colorB & 0x1F);
-										int greenB = ((colorB & 0x3E0) >> 5);
-										int blueB = ((colorB & 0x7C00) >> 10);
-										if (EVB == 0) {
-											redB = greenB = blueB = 0;
-										}
-										else
-										{
-											redB = float(redB) * (float(EVB) / 16);
-											greenB = float(greenB) * (float(EVB) / 16);
-											blueB = float(blueB) * (float(EVB) / 16);
-										}
-
-										int red = redA + redB;
-										red *= 8;
-										if (red > 255) {
-											red = 255;
-										}
-										int green = greenA + greenB;
-										green *= 8;
-										if (green > 255) {
-											green = 255;
-										}
-										int blue = blueA + blueB;
-										blue *= 8;
-										if (blue > 255) {
-											blue = 255;
-										}
-										SetPixel(display, pos, red, green, blue);
-									}
-									else
-									{
-										if (colorEffect == 2) {
-											if ((BLDCNT >> 4) & 1) {
+											if (bgColorsB[xCoord + i]) {
 												uint16_t colorA = Sprite[i][j];
+												uint16_t colorB = bgColorsB[xCoord + i];
 												int redA = (colorA & 0x1F);
 												int greenA = ((colorA & 0x3E0) >> 5);
 												int blueA = ((colorA & 0x7C00) >> 10);
+												if (EVA == 0) {
+													redA = greenA = blueA = 0;
+												}
+												else
+												{
+													redA = float(redA) * (float(EVA) / 16);
+													greenA = float(greenA) * (float(EVA) / 16);
+													blueA = float(blueA) * (float(EVA) / 16);
+												}
 
-												float EVZ = 16 - EVY;
-												redA = float(redA) *     (EVZ / 16);
-												greenA = float(greenA) * (EVZ / 16);
-												blueA = float(blueA) *   (EVZ / 16);
-
-
-												int redB = 31;
-												int greenB = 31;
-												int blueB = 31;
-
-												redB = float(redB) *     (float(EVY) / 16);
-												greenB = float(greenB) * (float(EVY) / 16);
-												blueB = float(blueB) *   (float(EVY) / 16);
+												int redB = (colorB & 0x1F);
+												int greenB = ((colorB & 0x3E0) >> 5);
+												int blueB = ((colorB & 0x7C00) >> 10);
+												if (EVB == 0) {
+													redB = greenB = blueB = 0;
+												}
+												else
+												{
+													redB = float(redB) * (float(EVB) / 16);
+													greenB = float(greenB) * (float(EVB) / 16);
+													blueB = float(blueB) * (float(EVB) / 16);
+												}
 
 												int red = redA + redB;
 												red *= 8;
@@ -1715,76 +1962,122 @@ void PPU::LoadSprites(MMU & mmu, Display & display, int spriteNum, int p)
 											}
 											else
 											{
-												display.SetPixel(pos, Sprite[i][j]);
+												if (colorEffect == 2) {
+													if ((BLDCNT >> 4) & 1) {
+														uint16_t colorA = Sprite[i][j];
+														int redA = (colorA & 0x1F);
+														int greenA = ((colorA & 0x3E0) >> 5);
+														int blueA = ((colorA & 0x7C00) >> 10);
+
+														float EVZ = 16 - EVY;
+														redA = float(redA) *     (EVZ / 16);
+														greenA = float(greenA) * (EVZ / 16);
+														blueA = float(blueA) *   (EVZ / 16);
+
+
+														int redB = 31;
+														int greenB = 31;
+														int blueB = 31;
+
+														redB = float(redB) *     (float(EVY) / 16);
+														greenB = float(greenB) * (float(EVY) / 16);
+														blueB = float(blueB) *   (float(EVY) / 16);
+
+														int red = redA + redB;
+														red *= 8;
+														if (red > 255) {
+															red = 255;
+														}
+														int green = greenA + greenB;
+														green *= 8;
+														if (green > 255) {
+															green = 255;
+														}
+														int blue = blueA + blueB;
+														blue *= 8;
+														if (blue > 255) {
+															blue = 255;
+														}
+														SetPixel(display, pos, red, green, blue);
+													}
+													else
+													{
+														display.SetPixel(pos, Sprite[i][j]);
+													}
+												}
+												else if (colorEffect == 3) {
+													if ((BLDCNT >> 4) & 1) {
+														uint16_t colorA = Sprite[i][j];
+														int redA = (colorA & 0x1F);
+														int greenA = ((colorA & 0x3E0) >> 5);
+														int blueA = ((colorA & 0x7C00) >> 10);
+
+														float EVZ = 16 - EVY;
+														redA = float(redA) *     (EVZ / 16);
+														greenA = float(greenA) * (EVZ / 16);
+														blueA = float(blueA) *   (EVZ / 16);
+
+
+														int redB = 0;
+														int greenB = 0;
+														int blueB = 0;
+
+														redB = float(redB) *     (float(EVY) / 16);
+														greenB = float(greenB) * (float(EVY) / 16);
+														blueB = float(blueB) *   (float(EVY) / 16);
+
+														int red = redA + redB;
+														red *= 8;
+														if (red > 255) {
+															red = 255;
+														}
+														int green = greenA + greenB;
+														green *= 8;
+														if (green > 255) {
+															green = 255;
+														}
+														int blue = blueA + blueB;
+														blue *= 8;
+														if (blue > 255) {
+															blue = 255;
+														}
+														SetPixel(display, pos, red, green, blue);
+													}
+													else
+													{
+														display.SetPixel(pos, Sprite[i][j]);
+													}
+												}
+												else
+												{
+													display.SetPixel(pos, Sprite[i][j]);
+												}
 											}
 										}
-										else if (colorEffect == 3) {
-											if ((BLDCNT >> 4) & 1) {
-												uint16_t colorA = Sprite[i][j];
-												int redA = (colorA & 0x1F);
-												int greenA = ((colorA & 0x3E0) >> 5);
-												int blueA = ((colorA & 0x7C00) >> 10);
-
-												float EVZ = 16 - EVY;
-												redA = float(redA) *     (EVZ / 16);
-												greenA = float(greenA) * (EVZ / 16);
-												blueA = float(blueA) *   (EVZ / 16);
-
-
-												int redB = 0;
-												int greenB = 0;
-												int blueB = 0;
-
-												redB = float(redB) *     (float(EVY) / 16);
-												greenB = float(greenB) * (float(EVY) / 16);
-												blueB = float(blueB) *   (float(EVY) / 16);
-
-												int red = redA + redB;
-												red *= 8;
-												if (red > 255) {
-													red = 255;
-												}
-												int green = greenA + greenB;
-												green *= 8;
-												if (green > 255) {
-													green = 255;
-												}
-												int blue = blueA + blueB;
-												blue *= 8;
-												if (blue > 255) {
-													blue = 255;
-												}
-												SetPixel(display, pos, red, green, blue);
-											}
-											else
-											{
-												display.SetPixel(pos, Sprite[i][j]);
-											}
-										}
-										else
-										{
+										break;
+										case 2:
+											// OBJ Window
+											break;
+										case 3:
+											// Prohibited
+											break;
+										default:
 											display.SetPixel(pos, Sprite[i][j]);
+											break;
 										}
+										//display.SetPixel(pos, Sprite[i][j]);
 									}
 								}
-									break;
-								case 2:
-									// OBJ Window
-									break;
-								case 3:
-									// Prohibited
-									break;
-								default:
-									display.SetPixel(pos, Sprite[i][j]);
-									break;
-								}
-								//display.SetPixel(pos, Sprite[i][j]);
 							}
 						}
 					}
 
-				}
+					if (half) {
+						i -= (width / 2);
+						j -= (height / 2);
+					}
 
+				}
 			}
 		}
 
@@ -1800,7 +2093,7 @@ uint32_t PPU::bitrange(int msb, int lsb, uint16_t insn)
 
 void PPU::Mode0Render(MMU& mmu, Display& display)
 {
-	if (bg0) {
+	if (true) {
 		readBg0Cnt(mmu);
 		bg0ScreenBase = (bg0ScreenBase * 0x800);
 		bg0CharBase = (bg0CharBase * 0x4000);
@@ -1988,7 +2281,7 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 
 		}
 	}
-	if (bg1) {
+	if (true) {
 		readBg1Cnt(mmu);
 		bg1ScreenBase = (bg1ScreenBase * 0x800);
 		bg1CharBase = (bg1CharBase * 0x4000);
@@ -2233,7 +2526,7 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 			}
 		}
 	}
-	if (bg2) {
+	if (true) {
 		readBg2Cnt(mmu);
 		bg2ScreenBase = (bg2ScreenBase * 0x800);
 		bg2CharBase = (bg2CharBase * 0x4000);
@@ -2424,7 +2717,7 @@ void PPU::Mode0Render(MMU& mmu, Display& display)
 			}
 		}
 	}
-	if (bg3) {
+	if (true) {
 		readBg3Cnt(mmu);
 		bg3ScreenBase = (bg3ScreenBase * 0x800);
 		bg3CharBase = (bg3CharBase * 0x4000);
